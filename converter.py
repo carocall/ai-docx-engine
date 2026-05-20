@@ -19,16 +19,18 @@ class XML2DOCXConverter:
 
     def _register_styles(self):
         for tag, style in self.styles.items():
-            if style.get("type") == "horizontal":
-                continue
 
             style_name = tag
+            # 检查样式是否已存在
             if style_name in [s.name for s in self.doc.styles]:
-                continue
+                # 如果存在，获取已有的样式对象
+                para_style = self.doc.styles[style_name]
+            else:
+                # 如果不存在，创建新样式
+                para_style = self.doc.styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
             # 设置字体
             font_name = style.get("font_name", "Times New Roman")
             font_name_east_asia = style.get("font_name_east_asia", "宋体")
-            para_style = self.doc.styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
             para_style.font.name = font_name
             para_style.font.name_east_asia = font_name_east_asia
             rFonts = para_style.font.element.rPr.rFonts
