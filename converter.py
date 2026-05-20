@@ -3,9 +3,11 @@ import sys
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from docx import Document
-from docx.shared import Pt, Cm
+from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 
 class XML2DOCXConverter:
@@ -13,6 +15,33 @@ class XML2DOCXConverter:
         with open(style_path, 'r', encoding='utf-8') as f:
             self.styles = json.load(f)
         self.doc = Document()
+        self._register_styles()
+
+    def _register_styles(self):
+        for tag, style in self.styles.items():
+            if style.get("type") == "horizontal":
+                continue
+
+            style_name = tag
+            if style_name in [s.name for s in self.doc.styles]:
+                continue
+
+            font_name = style.get("font_name", "宋体")
+            font_size = style.get("font_size", 12)
+            bold = style.get("bold", False)
+            alignment = style.get("alignment", "left")
+
+            para_style = self.doc.styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
+            para_style.font.name = font_name
+            para_style.font.size = Pt(font_size)
+            para_style.font.bold = bold
+            para_style.font.color.rgb = RGBColor(0, 0, 0)
+
+            para_style.paragraph_format.alignment = self._get_alignment(alignment)
+            if style.get("space_before"):
+                para_style.paragraph_format.space_before = Pt(style["space_before"])
+            if style.get("space_after"):
+                para_style.paragraph_format.space_after = Pt(style["space_after"])
 
     def convert(self, xml_path, output_path=None):
         self.xml_dir = str(Path(xml_path).parent.resolve())
@@ -50,23 +79,8 @@ class XML2DOCXConverter:
             self._add_paragraph(tag, text, style)
 
     def _add_paragraph(self, tag, text, style):
-        para = self.doc.add_paragraph()
-        alignment = self._get_alignment(style.get("alignment", "left"))
-        para.alignment = alignment
-
-        if style.get("space_before"):
-            para.paragraph_format.space_before = Pt(style["space_before"])
-        if style.get("space_after"):
-            para.paragraph_format.space_after = Pt(style["space_after"])
-
-        run = para.add_run(text)
-        run.font.name = style.get("font_name", "宋体")
-        run.font.size = Pt(style.get("font_size", 12))
-        run.font.bold = style.get("bold", False)
-
-        if style.get("outline_level"):
-            para.style = self.doc.styles['Heading ' + str(style["outline_level"])]
-
+        para = self.doc.add_paragraph(style=tag)
+        para.add_run(text)
         return para
 
     def _add_image(self, url, style):
@@ -102,8 +116,12 @@ class XML2DOCXConverter:
         for i in range(rows):
             for j in range(cols):
                 if idx < len(cells):
-                    cell_text = cells[idx].strip()
-                    table.cell(i, j).text = cell_text
+                    cell = table.cell(i, j)
+                    cell.text = cells[idx].strip()
+                    cell_style = "表头" if i == 0 else "表内文字"
+                    if cell_style in self.styles:
+                        for para in cell.paragraphs:
+                            para.style = cell_style
                     idx += 1
 
         para = self.doc.add_paragraph()
@@ -112,9 +130,6 @@ class XML2DOCXConverter:
 
     def _add_horizontal_line(self):
         para = self.doc.add_paragraph()
-        para_fmt = para.paragraph_format
-        from docx.oxml import OxmlElement
-        from docx.oxml.ns import qn
         pPr = para._p.get_or_add_pPr()
         pBdr = OxmlElement('w:pBdr')
         bottom = OxmlElement('w:bottom')
