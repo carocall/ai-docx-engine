@@ -78,5 +78,8 @@
   },
   "表格": {
     "space_after": {"units": "pt", "value": 12}
+  },
+  "换页": {
+    "type": "page_break"
   }
 }

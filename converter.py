@@ -115,8 +115,9 @@ class XML2DOCXConverter:
 
         style = self.styles[tag]
 
-        if style.get("type") == "horizontal":
-            self._add_horizontal_line()
+
+        if style.get("type") == "page_break":
+            self._add_page_break()
             return
 
         if tag == "图片":
@@ -197,17 +198,12 @@ class XML2DOCXConverter:
             else:
                 para.paragraph_format.space_after = Pt(value)
 
-    def _add_horizontal_line(self):
+
+
+    def _add_page_break(self):
         para = self.doc.add_paragraph()
-        pPr = para._p.get_or_add_pPr()
-        pBdr = OxmlElement('w:pBdr')
-        bottom = OxmlElement('w:bottom')
-        bottom.set(qn('w:val'), 'single')
-        bottom.set(qn('w:sz'), '6')
-        bottom.set(qn('w:space'), '1')
-        bottom.set(qn('w:color'), 'auto')
-        pBdr.append(bottom)
-        pPr.append(pBdr)
+        run = para.add_run()
+        run.add_break()
 
     def _get_alignment(self, align_str):
         mapping = {
