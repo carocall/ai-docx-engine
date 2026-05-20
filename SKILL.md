@@ -5,7 +5,8 @@ description: 将自定义XML标签转换为Word文档，支持通过style.json�
 # XML to DOCX 转换工具
 
 将自定义XML标签转换为Word文档，支持通过style.json自定义样式。
-
+## 你的职责
+根据用户描述，生成或修改对应的xml和style.json文件。然后根据需求转换成需要的word文档。
 ## 快速开始
 
 ### 转换命令

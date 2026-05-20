@@ -42,15 +42,25 @@ class XML2DOCXConverter:
             para_style.font.color.rgb = RGBColor(0, 0, 0)
 
             para_style.paragraph_format.alignment = self._get_alignment(alignment)
+
+            # 设置段前间距
             if style.get("space_before"):
                 para_style.paragraph_format.space_before = Pt(style["space_before"])
+            else:
+                para_style.paragraph_format.space_before = Pt(0)
+            # 设置段后间距
             if style.get("space_after"):
                 para_style.paragraph_format.space_after = Pt(style["space_after"])
+            else:
+                para_style.paragraph_format.space_after = Pt(0)
+            
+            # 设置首行缩进
             if style.get("firstLineChars"):
                 pPr = para_style.element.get_or_add_pPr()
                 ind = OxmlElement('w:ind')
                 ind.set(qn('w:firstLineChars'), str(int(style["firstLineChars"])))
                 pPr.append(ind)
+            # 设置行高
             if style.get("line_spacing"):
                 para_style.paragraph_format.line_spacing = style["line_spacing"]
 
