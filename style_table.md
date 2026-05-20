@@ -2,7 +2,7 @@
 
 ## font_name
 - 功能：指定西文字体名称
-- 可以取值 Times New Roman，Arial等字体名称
+- 可以取值 Times New Roman，Arial，Calibri，Courier New等字体名称
 - 默认值：Times New Roman
 比如：
 ```json
@@ -13,7 +13,7 @@
 
 ## font_name_east_asia
 - 功能：指定东亚字体名称
-- 可以取值 黑体，宋体等字体名称
+- 可以取值 黑体，宋体，楷体，微软雅黑，仿宋等字体名称
 - 默认值：宋体
 比如：
 ```json
