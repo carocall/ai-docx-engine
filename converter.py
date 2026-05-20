@@ -163,14 +163,14 @@ class XML2DOCXConverter:
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python converter.py <xml文件路径> [输出docx路径]")
-        print("示例: python converter.py input.xml output.docx")
+        print("用法: python converter.py <xml文件路径> [输出docx路径] [style.json路径]")
+        print("示例: python converter.py input.xml output.docx my_style.json")
         return
 
     xml_path = sys.argv[1]
     output_path = sys.argv[2] if len(sys.argv) > 2 else None
+    style_path = sys.argv[3] if len(sys.argv) > 3 else str(Path(__file__).parent / "style.json")
 
-    style_path = Path(__file__).parent / "style.json"
     converter = XML2DOCXConverter(style_path)
     converter.convert(xml_path, output_path)
 
