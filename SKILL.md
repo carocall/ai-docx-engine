@@ -7,6 +7,16 @@ description: 将自定义XML标签转换为Word文档，支持通过style.json�
 将自定义XML标签转换为Word文档，支持通过style.json自定义样式。
 ## 你的职责
 根据用户描述，生成或修改对应的xml和style.json文件。然后根据需求转换成需要的word文档。
+- 建议在当前目录创建一个文件夹，要符合规范：
+```
+├── examples //xml-to-doxc项目文件
+│   ├── sample.xml //主XML文件，包含所有内容
+│   ├── style.json //自定义样式文件
+│   ├── images //图片文件夹，包含所有图片文件
+│       ├── 样例.png
+│   ├── out //输出文件夹，包含转换后的docx文件
+│       ├── sample.docx
+```
 ## 快速开始
 
 ### 转换命令
