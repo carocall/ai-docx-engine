@@ -149,102 +149,15 @@ python converter.py input.xml
 ---
 
 ## 完整示例
-
-### 示例XML文件 (document.xml)
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <标题1>第1章 项目概述</标题1>
-  <正文>本文档介绍XML到DOCX转换工具的设计与实现。该工具支持自定义标签和样式配置。</正文>
-  <图片>architecture.png</图片>
-  <图注>图1-1 系统架构图</图注>
-  <正文>上图为系统整体架构，展示了主要组件之间的关系。</正文>
-
-  <标题2>第2章 功能说明</标题2>
-  <标题3>核心功能</标题3>
-  <正文>本工具支持多种自定义标签的转换。</正文>
-
-  <表格 rows="3" cols="3">功能名称;支持情况;说明|文本转换;是;基础功能|图片嵌入;是;支持相对路径|表格生成;是;行列式布局</表格>
-  <表注>表2-1 功能支持列表</表注>
-</root>
+- 同目录下有examples文件夹。这是一个标注的xml-to-docx示例文件。
+- 标准的xml-to-docx项目目录如下：
 ```
-
-### 示例样式文件 (style.json)
-
-```json
-{
-  "标题1": {
-    "font_name": "Arial",
-    "font_name_east_asia": "黑体",
-    "font_size": 22,
-    "bold": true,
-    "line_spacing": 1.5,
-    "space_before": 24,
-    "space_after": 12
-  },
-  "标题2": {
-    "font_name": "Arial",
-    "font_name_east_asia": "黑体",
-    "font_size": 18,
-    "bold": true,
-    "line_spacing": 1.5,
-    "space_before": 18,
-    "space_after": 10
-  },
-  "标题3": {
-    "font_name": "Arial",
-    "font_name_east_asia": "黑体",
-    "font_size": 16,
-    "bold": true,
-    "line_spacing": 1.5,
-    "space_before": 14,
-    "space_after": 8
-  },
-  "正文": {
-    "font_name": "Times New Roman",
-    "font_name_east_asia": "宋体",
-    "font_size": 12,
-    "line_spacing": 1.5,
-    "first_line_indent": 21.75,
-    "space_after": 6
-  },
-  "图注": {
-    "font_name": "Times New Roman",
-    "font_name_east_asia": "楷体",
-    "font_size": 10.5,
-    "alignment": "center",
-    "space_before": 6,
-    "space_after": 12
-  },
-  "表注": {
-    "font_name": "Times New Roman",
-    "font_name_east_asia": "楷体",
-    "font_size": 10.5,
-    "alignment": "center",
-    "space_before": 6,
-    "space_after": 12
-  },
-  "表头": {
-    "font_name": "Arial",
-    "font_name_east_asia": "宋体",
-    "font_size": 11,
-    "bold": true,
-    "alignment": "center"
-  },
-  "表内文字": {
-    "font_name": "Times New Roman",
-    "font_name_east_asia": "宋体",
-    "font_size": 11,
-    "alignment": "center"
-  },
-  "图片": {
-    "alignment": "center",
-    "space_before": 12,
-    "space_after": 6
-  },
-  "表格": {
-    "space_after": 12
-  }
-}
+├── examples
+│   ├── sample.xml //主XML文件，包含所有内容
+│   ├── style.json //自定义样式文件
+│   ├── images //图片文件夹，包含所有图片文件
+│       ├── 样例.png
+│   ├── out //输出文件夹，包含转换后的docx文件
+│       ├── sample.docx
 ```
+- 其中，`sample.xml`是示例XML文件，`images`文件夹下是图片文件。
