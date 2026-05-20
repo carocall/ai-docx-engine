@@ -115,11 +115,6 @@ class XML2DOCXConverter:
 
         style = self.styles[tag]
 
-
-        if style.get("type") == "page_break":
-            self._add_page_break()
-            return
-
         if tag == "图片":
             self._add_image(text, style)
         elif tag == "表格":
@@ -198,12 +193,6 @@ class XML2DOCXConverter:
             else:
                 para.paragraph_format.space_after = Pt(value)
 
-
-
-    def _add_page_break(self):
-        para = self.doc.add_paragraph()
-        run = para.add_run()
-        run.add_break()
 
     def _get_alignment(self, align_str):
         mapping = {
