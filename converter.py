@@ -25,8 +25,8 @@ class XML2DOCXConverter:
             style_name = tag
             if style_name in [s.name for s in self.doc.styles]:
                 continue
-
-            font_name = style.get("font_name", "宋体")
+            # 获取属性
+            font_name = style.get("font_name", "Times New Roman")
             font_name_east_asia = style.get("font_name_east_asia", "宋体")
             font_size = style.get("font_size", 12)
             bold = style.get("bold", False)
@@ -46,8 +46,11 @@ class XML2DOCXConverter:
                 para_style.paragraph_format.space_before = Pt(style["space_before"])
             if style.get("space_after"):
                 para_style.paragraph_format.space_after = Pt(style["space_after"])
-            if style.get("first_line_indent"):
-                para_style.paragraph_format.first_line_indent = Pt(style["first_line_indent"])
+            if style.get("firstLineChars"):
+                pPr = para_style.element.get_or_add_pPr()
+                ind = OxmlElement('w:ind')
+                ind.set(qn('w:firstLineChars'), str(int(style["firstLineChars"])))
+                pPr.append(ind)
             if style.get("line_spacing"):
                 para_style.paragraph_format.line_spacing = style["line_spacing"]
 

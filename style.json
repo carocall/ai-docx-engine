@@ -40,8 +40,7 @@
     "font_name_east_asia": "宋体",
     "font_size": 12,
     "line_spacing": 1.5,
-    "first_line_indent": 21.75,
-    "space_after": 6
+    "firstLineChars": 200
   },
   "图注": {
     "font_name": "Times New Roman",
