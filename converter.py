@@ -4,7 +4,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -47,14 +47,26 @@ class XML2DOCXConverter:
 
             # 设置段前间距
             if style.get("space_before"):
-                para_style.paragraph_format.space_before = Pt(style["space_before"])
+                space_before = style["space_before"]
+                units = space_before.get("units", "pt")
+                value = space_before.get("value", 0)
+                if units == "line":
+                    para_style.paragraph_format.space_before = Pt(value * 12)  # 1行≈12磅
+                else:
+                    para_style.paragraph_format.space_before = Pt(value)
             else:
                 para_style.paragraph_format.space_before = Pt(0)
 
 
             # 设置段后间距
             if style.get("space_after"):
-                para_style.paragraph_format.space_after = Pt(style["space_after"])
+                space_after = style["space_after"]
+                units = space_after.get("units", "pt")
+                value = space_after.get("value", 0)
+                if units == "line":
+                    para_style.paragraph_format.space_after = Pt(value * 12)  # 1行≈12磅
+                else:
+                    para_style.paragraph_format.space_after = Pt(value)
             else:
                 para_style.paragraph_format.space_after = Pt(0)
             
@@ -68,7 +80,14 @@ class XML2DOCXConverter:
 
             # 设置行高
             if style.get("line_spacing"):
-                para_style.paragraph_format.line_spacing = style["line_spacing"]
+                line_spacing = style["line_spacing"]
+                units = line_spacing.get("units", "line")
+                value = line_spacing.get("value", 1.0)
+                if units == "pt":
+                    para_style.paragraph_format.line_spacing = Pt(value)
+                    para_style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+                else:
+                    para_style.paragraph_format.line_spacing = value
 
 
 
@@ -117,9 +136,21 @@ class XML2DOCXConverter:
         para.alignment = self._get_alignment(style.get("alignment", "center"))
 
         if style.get("space_before"):
-            para.paragraph_format.space_before = Pt(style["space_before"])
+            space_before = style["space_before"]
+            units = space_before.get("units", "pt")
+            value = space_before.get("value", 0)
+            if units == "line":
+                para.paragraph_format.space_before = Pt(value * 12)
+            else:
+                para.paragraph_format.space_before = Pt(value)
         if style.get("space_after"):
-            para.paragraph_format.space_after = Pt(style["space_after"])
+            space_after = style["space_after"]
+            units = space_after.get("units", "pt")
+            value = space_after.get("value", 0)
+            if units == "line":
+                para.paragraph_format.space_after = Pt(value * 12)
+            else:
+                para.paragraph_format.space_after = Pt(value)
 
         img_path = url
         if not Path(url).is_absolute():
@@ -158,7 +189,13 @@ class XML2DOCXConverter:
 
         para = self.doc.add_paragraph()
         if style.get("space_after"):
-            para.paragraph_format.space_after = Pt(style["space_after"])
+            space_after = style["space_after"]
+            units = space_after.get("units", "pt")
+            value = space_after.get("value", 0)
+            if units == "line":
+                para.paragraph_format.space_after = Pt(value * 12)
+            else:
+                para.paragraph_format.space_after = Pt(value)
 
     def _add_horizontal_line(self):
         para = self.doc.add_paragraph()
