@@ -35,6 +35,8 @@ class XML2DOCXConverter:
             para_style = self.doc.styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
             para_style.font.name = font_name
             para_style.font.name_east_asia = font_name_east_asia
+            rFonts = para_style.font.element.rPr.rFonts
+            rFonts.set(qn('w:eastAsia'), font_name_east_asia)
             para_style.font.size = Pt(font_size)
             para_style.font.bold = bold
             para_style.font.color.rgb = RGBColor(0, 0, 0)
@@ -117,18 +119,21 @@ class XML2DOCXConverter:
         table = self.doc.add_table(rows=rows, cols=cols)
         table.style = 'Table Grid'
 
-        cells = text.split(";")
-        idx = 0
-        for i in range(rows):
-            for j in range(cols):
-                if idx < len(cells):
-                    cell = table.cell(i, j)
-                    cell.text = cells[idx].strip()
-                    cell_style = "表头" if i == 0 else "表内文字"
-                    if cell_style in self.styles:
-                        for para in cell.paragraphs:
-                            para.style = cell_style
-                    idx += 1
+        text = text.replace('\n', '').replace('\r', '')
+        rows_data = text.split("|")
+        
+        for i in range(min(rows, len(rows_data))):
+            cells = rows_data[i].split(";")
+            for j in range(min(cols, len(cells))):
+                cell = table.cell(i, j)
+                cell.text = cells[j].strip()
+                cell_style = "表头" if i == 0 else "表内文字"
+                if cell_style in self.styles:
+                    for para in cell.paragraphs:
+                        para.style = cell_style
+                        para.paragraph_format.left_indent = 0
+                        para.paragraph_format.first_line_indent = 0
+                        para.paragraph_format.hanging_indent = 0
 
         para = self.doc.add_paragraph()
         if style.get("space_after"):
