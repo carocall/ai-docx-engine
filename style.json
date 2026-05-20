@@ -44,7 +44,7 @@
   },
   "图注": {
     "font_name": "Times New Roman",
-    "font_name_east_asia": "楷体",
+    "font_name_east_asia": "宋体",
     "font_size": 10.5,
     "alignment": "center",
     "space_before": {"units": "pt", "value": 6},
@@ -52,7 +52,7 @@
   },
   "表注": {
     "font_name": "Times New Roman",
-    "font_name_east_asia": "楷体",
+    "font_name_east_asia": "宋体",
     "font_size": 10.5,
     "alignment": "center",
     "space_before": {"units": "pt", "value": 6},
