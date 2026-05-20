@@ -4,7 +4,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
 from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -111,6 +111,10 @@ class XML2DOCXConverter:
         print(f"文档已生成: {output_path}")
 
     def _process_element(self, tag, text, attrs):
+        if tag in ("换页", "分页", "page-break", "pagebreak"):
+            self._add_page_break()
+            return
+
         if tag not in self.styles:
             print(f"警告: 未知标签 '{tag}'，将作为正文处理")
             tag = "正文"
@@ -127,6 +131,11 @@ class XML2DOCXConverter:
     def _add_paragraph(self, tag, text, style):
         para = self.doc.add_paragraph(style=tag)
         para.add_run(text)
+        return para
+
+    def _add_page_break(self):
+        para = self.doc.add_paragraph()
+        para.add_run().add_break(WD_BREAK.PAGE)
         return para
 
     def _add_image(self, url, style):
