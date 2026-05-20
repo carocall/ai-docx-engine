@@ -27,12 +27,14 @@ class XML2DOCXConverter:
                 continue
 
             font_name = style.get("font_name", "宋体")
+            font_name_east_asia = style.get("font_name_east_asia", "宋体")
             font_size = style.get("font_size", 12)
             bold = style.get("bold", False)
             alignment = style.get("alignment", "left")
 
             para_style = self.doc.styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
             para_style.font.name = font_name
+            para_style.font.name_east_asia = font_name_east_asia
             para_style.font.size = Pt(font_size)
             para_style.font.bold = bold
             para_style.font.color.rgb = RGBColor(0, 0, 0)
@@ -42,6 +44,10 @@ class XML2DOCXConverter:
                 para_style.paragraph_format.space_before = Pt(style["space_before"])
             if style.get("space_after"):
                 para_style.paragraph_format.space_after = Pt(style["space_after"])
+            if style.get("first_line_indent"):
+                para_style.paragraph_format.first_line_indent = Pt(style["first_line_indent"])
+            if style.get("line_spacing"):
+                para_style.paragraph_format.line_spacing = style["line_spacing"]
 
     def convert(self, xml_path, output_path=None):
         self.xml_dir = str(Path(xml_path).parent.resolve())
