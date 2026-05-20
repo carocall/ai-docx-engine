@@ -157,6 +157,34 @@ class XML2DOCXConverter:
         except Exception as e:
             para.add_run(f"[图片加载失败: {url}]")
 
+    def _set_table_no_border(self, table):
+        tbl = table._element
+        tblPr = tbl.tblPr
+
+        tblBorders = OxmlElement('w:tblBorders')
+
+        for edge in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            element = OxmlElement(f'w:{edge}')
+            element.set(qn('w:val'), 'nil')
+            tblBorders.append(element)
+
+        tblPr.append(tblBorders)
+
+    def _set_cell_border(self, cell, **kwargs):
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        tcBorders = OxmlElement('w:tcBorders')
+
+        for edge, val in kwargs.items():
+            element = OxmlElement(f'w:{edge}')
+            element.set(qn('w:val'), val)
+            element.set(qn('w:sz'), "12")
+            element.set(qn('w:space'), "0")
+            element.set(qn('w:color'), "000000")
+            tcBorders.append(element)
+
+        tcPr.append(tcBorders)
+
     def _add_table(self, text, style, attrs):
         rows = int(attrs.get("rows", 0))
         cols = int(attrs.get("cols", 0))
@@ -165,7 +193,6 @@ class XML2DOCXConverter:
             return
 
         table = self.doc.add_table(rows=rows, cols=cols)
-        table.style = 'Table Grid'
 
         text = text.replace('\n', '').replace('\r', '')
         rows_data = text.split("|")
@@ -182,6 +209,20 @@ class XML2DOCXConverter:
                         para.paragraph_format.left_indent = 0
                         para.paragraph_format.first_line_indent = 0
                         para.paragraph_format.hanging_indent = 0
+
+        self._set_table_no_border(table)
+
+        if rows >= 1:
+            for cell in table.rows[0].cells:
+                self._set_cell_border(cell, top="single", bottom="single", left="nil", right="nil")
+
+            for i in range(1, rows):
+                for cell in table.rows[i].cells:
+                    self._set_cell_border(cell, left="nil", right="nil")
+
+            if rows >= 2:
+                for cell in table.rows[-1].cells:
+                    self._set_cell_border(cell, bottom="single", left="nil", right="nil")
 
         para = self.doc.add_paragraph()
         if style.get("space_after"):

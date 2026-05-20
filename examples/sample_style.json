@@ -1,0 +1,82 @@
+{
+  "标题1": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "黑体",
+    "font_size": 22,
+    "bold": true,
+    "line_spacing": {"units": "line", "value": 1.5},
+    "space_before": {"units": "pt", "value": 6},
+    "space_after": {"units": "pt", "value": 12}
+  },
+  "标题2": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "黑体",
+    "font_size": 18,
+    "bold": true,
+    "line_spacing": {"units": "line", "value": 1.5},
+    "space_before": {"units": "pt", "value": 6},
+    "space_after": {"units": "pt", "value": 10}
+  },
+  "标题3": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "黑体",
+    "font_size": 16,
+    "bold": true,
+    "line_spacing": {"units": "line", "value": 1.5},
+    "space_before": {"units": "pt", "value": 6},
+    "space_after": {"units": "pt", "value": 8}
+  },
+  "标题4": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "黑体",
+    "font_size": 14,
+    "bold": true,
+    "line_spacing": {"units": "line", "value": 1.5},
+    "space_before": {"units": "pt", "value": 6},
+    "space_after": {"units": "pt", "value": 6}
+  },
+  "正文": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "宋体",
+    "font_size": 12,
+    "line_spacing": {"units": "pt", "value": 22},
+    "firstLineChars": 200
+  },
+  "图注": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "楷体",
+    "font_size": 10.5,
+    "alignment": "center",
+    "space_before": {"units": "pt", "value": 6},
+    "space_after": {"units": "pt", "value": 12}
+  },
+  "表注": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "楷体",
+    "font_size": 10.5,
+    "alignment": "center",
+    "space_before": {"units": "pt", "value": 6},
+    "space_after": {"units": "pt", "value": 12}
+  },
+  "表头": {
+    "font_name": "Arial",
+    "font_name_east_asia": "宋体",
+    "font_size": 11,
+    "bold": true,
+    "alignment": "center"
+  },
+  "表内文字": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "宋体",
+    "font_size": 11,
+    "alignment": "center"
+  },
+  "图片": {
+    "alignment": "center",
+    "space_before": {"units": "pt", "value": 12},
+    "space_after": {"units": "pt", "value": 6}
+  },
+  "表格": {
+    "space_after": {"units": "pt", "value": 12}
+  }
+}
