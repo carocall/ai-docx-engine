@@ -1,0 +1,33 @@
+{
+  "正文": {
+    "font_name": "宋体",
+    "font_size": 12,
+    "line_spacing": 1.5
+  },
+  "图片标注": {
+    "font_name": "楷体",
+    "font_size": 10.5,
+    "alignment": "center",
+    "space_before": 6,
+    "space_after": 6
+  },
+  "图片": {
+    "alignment": "center",
+    "space_before": 12,
+    "space_after": 6
+  },
+  "章节标题": {
+    "font_name": "黑体",
+    "font_size": 16,
+    "bold": true,
+    "outline_level": 1,
+    "space_before": 24,
+    "space_after": 12
+  },
+  "分隔线": {
+    "type": "horizontal"
+  },
+  "表格": {
+    "space_after": 12
+  }
+}
