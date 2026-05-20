@@ -25,29 +25,33 @@ class XML2DOCXConverter:
             style_name = tag
             if style_name in [s.name for s in self.doc.styles]:
                 continue
-            # 获取属性
+            # 设置字体
             font_name = style.get("font_name", "Times New Roman")
             font_name_east_asia = style.get("font_name_east_asia", "宋体")
-            font_size = style.get("font_size", 12)
-            bold = style.get("bold", False)
-            alignment = style.get("alignment", "left")
-
             para_style = self.doc.styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
             para_style.font.name = font_name
             para_style.font.name_east_asia = font_name_east_asia
             rFonts = para_style.font.element.rPr.rFonts
             rFonts.set(qn('w:eastAsia'), font_name_east_asia)
+            # 设置字体大小
+            font_size = style.get("font_size", 12)
             para_style.font.size = Pt(font_size)
+            # 设置加粗
+            bold = style.get("bold", False)
             para_style.font.bold = bold
-            para_style.font.color.rgb = RGBColor(0, 0, 0)
-
+            # 设置对齐方式
+            alignment = style.get("alignment", "left")
             para_style.paragraph_format.alignment = self._get_alignment(alignment)
+            # 设置字体颜色
+            para_style.font.color.rgb = RGBColor(0, 0, 0)
 
             # 设置段前间距
             if style.get("space_before"):
                 para_style.paragraph_format.space_before = Pt(style["space_before"])
             else:
                 para_style.paragraph_format.space_before = Pt(0)
+
+
             # 设置段后间距
             if style.get("space_after"):
                 para_style.paragraph_format.space_after = Pt(style["space_after"])
@@ -60,9 +64,13 @@ class XML2DOCXConverter:
                 ind = OxmlElement('w:ind')
                 ind.set(qn('w:firstLineChars'), str(int(style["firstLineChars"])))
                 pPr.append(ind)
+
+
             # 设置行高
             if style.get("line_spacing"):
                 para_style.paragraph_format.line_spacing = style["line_spacing"]
+
+
 
     def convert(self, xml_path, output_path=None):
         self.xml_dir = str(Path(xml_path).parent.resolve())
