@@ -20,4 +20,12 @@
 
   <p style="标题1">2 第二章</p>
   <p style="正文">这里演示 page-break 标签生成换页符。</p>
+  <p style="一个不存在的样式">p的样式不存在就会用默认的p</p>
+  <table style="一个不存在的样式">
+不存在的table会默认;lllll|
+默认为默认的table样式;默认为默认的table样式|
+默认为默认的table样式;默认为默认的table样式|
+默认为默认的table样式;默认为默认的table样式|
+  </table>
+    <image src="images/样例.png" style="一个不存在的样式"/>
 </root>

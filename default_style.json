@@ -1,0 +1,25 @@
+{
+  "default_style_p": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "宋体",
+    "font_size": 12,
+    "bold": false,
+    "alignment": "left",
+    "line_spacing": {"units": "pt", "value": 22},
+    "space_before": {"units": "pt", "value": 0},
+    "space_after": {"units": "pt", "value": 0},
+    "firstLineChars": 200
+  },
+  "default_style_image": {
+    "alignment": "center",
+    "width_cm": 15,
+    "space_before": {"units": "pt", "value": 12},
+    "space_after": {"units": "pt", "value": 6}
+  },
+  "default_style_table": {
+    "header_style": "default_style_p",
+    "body_style": "default_style_p",
+    "border": "three_line",
+    "space_after": {"units": "pt", "value": 12}
+  }
+}

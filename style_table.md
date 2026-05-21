@@ -141,15 +141,3 @@
     "line_spacing": {"units": "line", "value": 1.5},
 }
 ```
-
-## type
-- 功能：指定特殊类型标识
-- 可以取值：
-  - "horizontal" - 表示这是一个水平分隔线标签
-- 默认值：无
-比如：
-```json
-{
-    "type": "horizontal",
-}
-```

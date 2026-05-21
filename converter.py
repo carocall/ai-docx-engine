@@ -12,10 +12,37 @@ from docx.oxml import OxmlElement
 
 class XML2DOCXConverter:
     def __init__(self, style_path):
-        with open(style_path, 'r', encoding='utf-8') as f:
-            self.styles = json.load(f)
+        self.default_style_names = {
+            "p": "default_style_p",
+            "image": "default_style_image",
+            "table": "default_style_table"
+        }
+        default_style_path = Path(__file__).parent / "default_style.json"
+        self.default_styles = self._load_styles(default_style_path)
+        user_styles = self._load_styles(style_path)
+        self.styles = self._merge_styles(self.default_styles, user_styles)
         self.doc = Document()
         self._register_styles()
+
+    def _load_styles(self, style_path):
+        if not style_path:
+            return {}
+        style_path = Path(style_path)
+        if not style_path.exists():
+            return {}
+        with open(style_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    def _merge_styles(self, base_styles, override_styles):
+        styles = {name: value.copy() for name, value in base_styles.items()}
+        for name, override in override_styles.items():
+            if name in styles and isinstance(styles[name], dict) and isinstance(override, dict):
+                merged = styles[name].copy()
+                merged.update(override)
+                styles[name] = merged
+            else:
+                styles[name] = override
+        return styles
 
     def _register_styles(self):
         for tag, style in self.styles.items():
@@ -116,33 +143,31 @@ class XML2DOCXConverter:
             return
 
         if tag == "p":
-            style_name = attrs.get("style", "正文")
-            if style_name not in self.styles:
-                print(f"警告: 未知样式 '{style_name}'，将使用 '正文'")
-                style_name = "正文"
-            style = self.styles[style_name]
+            style_name, style = self._resolve_style("p", attrs)
             self._add_paragraph(style_name, text, style)
             return
 
         if tag == "image":
-            style_name = attrs.get("style", "图片")
-            if style_name not in self.styles:
-                print(f"警告: 未知样式 '{style_name}'，将使用 '图片'")
-                style_name = "图片"
-            style = self.styles[style_name]
+            style_name, style = self._resolve_style("image", attrs)
             self._add_image(attrs.get("src", text), style)
             return
 
         if tag == "table":
-            style_name = attrs.get("style", "表格")
-            if style_name not in self.styles:
-                print(f"警告: 未知样式 '{style_name}'，将使用 '表格'")
-                style_name = "表格"
-            style = self.styles[style_name]
+            style_name, style = self._resolve_style("table", attrs)
             self._add_table(text, style, attrs)
             return
 
         print(f"警告: 不支持的标签 '{tag}'，已跳过")
+
+    def _resolve_style(self, element_type, attrs):
+        default_style_name = self.default_style_names[element_type]
+        requested_style_name = attrs.get("style")
+        style_name = requested_style_name if requested_style_name in self.styles else default_style_name
+
+        default_style = self.styles.get(default_style_name, {})
+        style = default_style.copy()
+        style.update(self.styles.get(style_name, {}))
+        return style_name, style
 
     def _add_paragraph(self, tag, text, style):
         para = self.doc.add_paragraph(style=tag)
@@ -257,8 +282,8 @@ class XML2DOCXConverter:
             return
 
         table = self.doc.add_table(rows=rows, cols=cols)
-        header_style = style.get("header_style", "表头")
-        body_style = style.get("body_style", "表内文字")
+        header_style = style["header_style"]
+        body_style = style["body_style"]
         
         for i in range(min(rows, len(rows_data))):
             cells = rows_data[i].split(";")
@@ -266,14 +291,13 @@ class XML2DOCXConverter:
                 cell = table.cell(i, j)
                 cell.text = cells[j].strip()
                 cell_style = header_style if i == 0 else body_style
-                if cell_style in self.styles:
-                    for para in cell.paragraphs:
-                        para.style = cell_style
-                        para.paragraph_format.left_indent = 0
-                        para.paragraph_format.first_line_indent = 0
-                        para.paragraph_format.hanging_indent = 0
+                for para in cell.paragraphs:
+                    para.style = cell_style
+                    para.paragraph_format.left_indent = 0
+                    para.paragraph_format.first_line_indent = 0
+                    para.paragraph_format.hanging_indent = 0
 
-        self._apply_table_borders(table, style.get("border", "three_line"))
+        self._apply_table_borders(table, style["border"])
 
         para = self.doc.add_paragraph()
         if style.get("space_after"):
