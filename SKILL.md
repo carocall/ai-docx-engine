@@ -63,10 +63,9 @@ python converter.py <xml文件路径> [输出docx路径] [style.json路径]
 ```
 ├── examples
 │   ├── sample.xml //主XML文件，包含所有内容
-│   ├── style.json //自定义样式文件
+│   ├── sample_style.json //自定义样式文件
 │   ├── images //图片文件夹，包含所有图片文件
 │       ├── 样例.png
 │   ├── out //输出文件夹，包含转换后的docx文件
-│       ├── sample.docx
 ```
 - 其中，`sample.xml`是示例XML文件，`images`文件夹下是图片文件。
