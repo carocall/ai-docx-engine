@@ -73,10 +73,26 @@
   },
   "图片": {
     "alignment": "center",
+    "width_cm": 10,
     "space_before": {"units": "pt", "value": 12},
     "space_after": {"units": "pt", "value": 6}
   },
   "表格": {
+    "header_style": "表头",
+    "body_style": "表内文字",
+    "border": "three_line",
+    "space_after": {"units": "pt", "value": 12}
+  },
+  "三线表": {
+    "header_style": "表头",
+    "body_style": "表内文字",
+    "border": "three_line",
+    "space_after": {"units": "pt", "value": 12}
+  },
+  "网格表": {
+    "header_style": "表头",
+    "body_style": "表内文字",
+    "border": "grid",
     "space_after": {"units": "pt", "value": 12}
   }
 }

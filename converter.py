@@ -111,22 +111,38 @@ class XML2DOCXConverter:
         print(f"文档已生成: {output_path}")
 
     def _process_element(self, tag, text, attrs):
-        if tag in ("换页", "分页", "page-break", "pagebreak"):
+        if tag == "page-break":
             self._add_page_break()
             return
 
-        if tag not in self.styles:
-            print(f"警告: 未知标签 '{tag}'，将作为正文处理")
-            tag = "正文"
+        if tag == "p":
+            style_name = attrs.get("style", "正文")
+            if style_name not in self.styles:
+                print(f"警告: 未知样式 '{style_name}'，将使用 '正文'")
+                style_name = "正文"
+            style = self.styles[style_name]
+            self._add_paragraph(style_name, text, style)
+            return
 
-        style = self.styles[tag]
+        if tag == "image":
+            style_name = attrs.get("style", "图片")
+            if style_name not in self.styles:
+                print(f"警告: 未知样式 '{style_name}'，将使用 '图片'")
+                style_name = "图片"
+            style = self.styles[style_name]
+            self._add_image(attrs.get("src", text), style)
+            return
 
-        if tag == "图片":
-            self._add_image(text, style)
-        elif tag == "表格":
+        if tag == "table":
+            style_name = attrs.get("style", "表格")
+            if style_name not in self.styles:
+                print(f"警告: 未知样式 '{style_name}'，将使用 '表格'")
+                style_name = "表格"
+            style = self.styles[style_name]
             self._add_table(text, style, attrs)
-        else:
-            self._add_paragraph(tag, text, style)
+            return
+
+        print(f"警告: 不支持的标签 '{tag}'，已跳过")
 
     def _add_paragraph(self, tag, text, style):
         para = self.doc.add_paragraph(style=tag)
@@ -164,7 +180,8 @@ class XML2DOCXConverter:
             img_path = str(Path(self.xml_dir) / url)
 
         try:
-            para.add_run().add_picture(img_path, width=Cm(10))
+            width_cm = style.get("width_cm", 10)
+            para.add_run().add_picture(img_path, width=Cm(width_cm))
         except Exception as e:
             para.add_run(f"[图片加载失败: {url}]")
 
@@ -196,33 +213,25 @@ class XML2DOCXConverter:
 
         tcPr.append(tcBorders)
 
-    def _add_table(self, text, style, attrs):
-        rows = int(attrs.get("rows", 0))
-        cols = int(attrs.get("cols", 0))
-
-        if rows <= 0 or cols <= 0:
-            return
-
-        table = self.doc.add_table(rows=rows, cols=cols)
-
-        text = text.replace('\n', '').replace('\r', '')
-        rows_data = text.split("|")
-        
-        for i in range(min(rows, len(rows_data))):
-            cells = rows_data[i].split(";")
-            for j in range(min(cols, len(cells))):
-                cell = table.cell(i, j)
-                cell.text = cells[j].strip()
-                cell_style = "表头" if i == 0 else "表内文字"
-                if cell_style in self.styles:
-                    for para in cell.paragraphs:
-                        para.style = cell_style
-                        para.paragraph_format.left_indent = 0
-                        para.paragraph_format.first_line_indent = 0
-                        para.paragraph_format.hanging_indent = 0
-
+    def _apply_table_borders(self, table, border_style):
         self._set_table_no_border(table)
 
+        if border_style == "none":
+            return
+
+        if border_style == "grid":
+            for row in table.rows:
+                for cell in row.cells:
+                    self._set_cell_border(
+                        cell,
+                        top="single",
+                        bottom="single",
+                        left="single",
+                        right="single"
+                    )
+            return
+
+        rows = len(table.rows)
         if rows >= 1:
             for cell in table.rows[0].cells:
                 self._set_cell_border(cell, top="single", bottom="single", left="nil", right="nil")
@@ -234,6 +243,37 @@ class XML2DOCXConverter:
             if rows >= 2:
                 for cell in table.rows[-1].cells:
                     self._set_cell_border(cell, bottom="single", left="nil", right="nil")
+
+    def _add_table(self, text, style, attrs):
+        text = text.replace('\n', '').replace('\r', '')
+        rows_data = [row for row in text.split("|") if row.strip()]
+        inferred_rows = len(rows_data)
+        inferred_cols = max((len(row.split(";")) for row in rows_data), default=0)
+
+        rows = int(attrs.get("rows", inferred_rows))
+        cols = int(attrs.get("cols", inferred_cols))
+
+        if rows <= 0 or cols <= 0:
+            return
+
+        table = self.doc.add_table(rows=rows, cols=cols)
+        header_style = style.get("header_style", "表头")
+        body_style = style.get("body_style", "表内文字")
+        
+        for i in range(min(rows, len(rows_data))):
+            cells = rows_data[i].split(";")
+            for j in range(min(cols, len(cells))):
+                cell = table.cell(i, j)
+                cell.text = cells[j].strip()
+                cell_style = header_style if i == 0 else body_style
+                if cell_style in self.styles:
+                    for para in cell.paragraphs:
+                        para.style = cell_style
+                        para.paragraph_format.left_indent = 0
+                        para.paragraph_format.first_line_indent = 0
+                        para.paragraph_format.hanging_indent = 0
+
+        self._apply_table_borders(table, style.get("border", "three_line"))
 
         para = self.doc.add_paragraph()
         if style.get("space_after"):
