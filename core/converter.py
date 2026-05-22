@@ -5,24 +5,20 @@ JSON to DOCX 转换器
 import sys
 from pathlib import Path
 
-# 添加core目录到路径
-sys.path.insert(0, str(Path(__file__).parent))
-
-from core.renderer import DocxRenderer
+from .renderer import DocxRenderer
 
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python converter.py <json文件路径> [输出docx路径] [style.json路径]")
-        print("示例: python converter.py input.json output.docx my_style.json")
+        print("用法: python -m core.converter <json文件路径> [输出docx路径] [style.json路径]")
+        print("示例: python -m core.converter input.json output.docx my_style.json")
         return
 
     json_path = sys.argv[1]
     output_path = sys.argv[2] if len(sys.argv) > 2 else None
-    style_path = sys.argv[3] if len(sys.argv) > 3 else str(Path(__file__).parent / "style.json")
+    style_path = sys.argv[3] if len(sys.argv) > 3 else str(Path(__file__).parent.parent / "style.json")
 
     try:
-        # 创建渲染器并渲染
         renderer = DocxRenderer(style_path)
         result_path = renderer.render_file(json_path, output_path)
         print(f"文档已生成: {result_path}")
