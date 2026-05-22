@@ -1,5 +1,5 @@
 {
-  "default_style_p": {
+  "default_style_text": {
     "font_name": "Times New Roman",
     "font_name_east_asia": "宋体",
     "font_size": 12,
@@ -17,8 +17,8 @@
     "space_after": {"units": "pt", "value": 6}
   },
   "default_style_table": {
-    "header_style": "default_style_p",
-    "body_style": "default_style_p",
+    "header_style": "default_style_text",
+    "body_style": "default_style_text",
     "border": "three_line",
     "space_after": {"units": "pt", "value": 12}
   }

@@ -75,8 +75,5 @@
     "alignment": "center",
     "space_before": {"units": "pt", "value": 12},
     "space_after": {"units": "pt", "value": 6}
-  },
-  "表格": {
-    "space_after": {"units": "pt", "value": 12}
   }
 }

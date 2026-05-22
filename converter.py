@@ -1,7 +1,6 @@
 import json
 import sys
 from pathlib import Path
-import xml.etree.ElementTree as ET
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
@@ -10,10 +9,10 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 
-class XML2DOCXConverter:
+class JSON2DOCXConverter:
     def __init__(self, style_path):
         self.default_style_names = {
-            "p": "default_style_p",
+            "text": "default_style_text",
             "image": "default_style_image",
             "table": "default_style_table"
         }
@@ -46,7 +45,6 @@ class XML2DOCXConverter:
 
     def _register_styles(self):
         for tag, style in self.styles.items():
-
             style_name = tag
             # 检查样式是否已存在
             if style_name in [s.name for s in self.doc.styles]:
@@ -86,7 +84,6 @@ class XML2DOCXConverter:
             else:
                 para_style.paragraph_format.space_before = Pt(0)
 
-
             # 设置段后间距
             if style.get("space_after"):
                 space_after = style["space_after"]
@@ -98,14 +95,13 @@ class XML2DOCXConverter:
                     para_style.paragraph_format.space_after = Pt(value)
             else:
                 para_style.paragraph_format.space_after = Pt(0)
-            
+
             # 设置首行缩进
             if style.get("firstLineChars"):
                 pPr = para_style.element.get_or_add_pPr()
                 ind = OxmlElement('w:ind')
                 ind.set(qn('w:firstLineChars'), str(int(style["firstLineChars"])))
                 pPr.append(ind)
-
 
             # 设置行高
             if style.get("line_spacing"):
@@ -118,68 +114,113 @@ class XML2DOCXConverter:
                 else:
                     para_style.paragraph_format.line_spacing = value
 
+    def convert(self, json_path, output_path=None):
+        self.json_dir = str(Path(json_path).parent.resolve())
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
 
-
-    def convert(self, xml_path, output_path=None):
-        self.xml_dir = str(Path(xml_path).parent.resolve())
-        tree = ET.parse(xml_path)
-        root = tree.getroot()
-
-        for element in root:
-            tag_name = element.tag
-            text = element.text or ''
-            attrs = element.attrib
-
-            self._process_element(tag_name, text, attrs)
+        blocks = data.get("blocks", [])
+        for block in blocks:
+            self._process_block(block)
 
         if output_path is None:
-            output_path = str(Path(xml_path).with_suffix('.docx'))
+            output_path = str(Path(json_path).with_suffix('.docx'))
         self.doc.save(output_path)
         print(f"文档已生成: {output_path}")
 
-    def _process_element(self, tag, text, attrs):
-        if tag == "page-break":
+    def _process_block(self, block):
+        block_type = block.get("type")
+        style_name = block.get("style", "")
+
+        if block_type == "page-break":
             self._add_page_break()
             return
 
-        if tag == "p":
-            style_name, style = self._resolve_style("p", attrs)
-            self._add_paragraph(style_name, text, style)
+        if block_type == "text":
+            self._add_text_block(block, style_name)
             return
 
-        if tag == "image":
-            style_name, style = self._resolve_style("image", attrs)
-            self._add_image(attrs.get("src", text), style)
+        if block_type == "image":
+            self._add_image_block(block, style_name)
             return
 
-        if tag == "table":
-            style_name, style = self._resolve_style("table", attrs)
-            self._add_table(text, style, attrs)
+        if block_type == "table":
+            self._add_table_block(block, style_name)
             return
 
-        print(f"警告: 不支持的标签 '{tag}'，已跳过")
+        print(f"警告: 不支持的块类型 '{block_type}'，已跳过")
 
-    def _resolve_style(self, element_type, attrs):
-        default_style_name = self.default_style_names[element_type]
-        requested_style_name = attrs.get("style")
-        style_name = requested_style_name if requested_style_name in self.styles else default_style_name
+    def _add_text_block(self, block, style_name):
+        # 获取样式
+        default_style_name = self.default_style_names["text"]
+        actual_style_name = style_name if style_name in self.styles else default_style_name
 
-        default_style = self.styles.get(default_style_name, {})
-        style = default_style.copy()
-        style.update(self.styles.get(style_name, {}))
-        return style_name, style
+        para = self.doc.add_paragraph(style=actual_style_name)
 
-    def _add_paragraph(self, tag, text, style):
-        para = self.doc.add_paragraph(style=tag)
-        para.add_run(text)
+        # 处理 runs
+        runs = block.get("runs", [])
+        if not runs:
+            # 如果没有 runs，使用 block 的 text 字段（向后兼容）
+            text = block.get("text", "")
+            if text:
+                para.add_run(text)
+        else:
+            for run in runs:
+                self._add_run_to_para(para, run)
+
         return para
+
+    def _add_run_to_para(self, para, run):
+        text = run.get("text", "")
+        if not text:
+            return
+
+        r = para.add_run(text)
+
+        # 应用 inline 样式
+        if run.get("bold"):
+            r.bold = True
+        if run.get("italic"):
+            r.italic = True
+        if run.get("underline"):
+            r.underline = True
+        if run.get("superscript"):
+            r.font.superscript = True
+        if run.get("subscript"):
+            r.font.subscript = True
+        if run.get("color"):
+            try:
+                color = run["color"]
+                if isinstance(color, str) and color.startswith("#"):
+                    color = color[1:]
+                r.font.color.rgb = RGBColor.from_string(color)
+            except:
+                pass
+        if run.get("highlight"):
+            # 高亮背景色
+            try:
+                highlight_color = run["highlight"]
+                if isinstance(highlight_color, str) and highlight_color.startswith("#"):
+                    highlight_color = highlight_color[1:]
+                # 使用 shading 设置背景色
+                rPr = r._element.get_or_add_rPr()
+                shading = OxmlElement('w:shd')
+                shading.set(qn('w:fill'), highlight_color)
+                rPr.append(shading)
+            except:
+                pass
 
     def _add_page_break(self):
         para = self.doc.add_paragraph()
         para.add_run().add_break(WD_BREAK.PAGE)
         return para
 
-    def _add_image(self, url, style):
+    def _add_image_block(self, block, style_name):
+        # 获取样式
+        default_style_name = self.default_style_names["image"]
+        actual_style_name = style_name if style_name in self.styles else default_style_name
+        style = self.styles.get(actual_style_name, self.styles.get(default_style_name, {}))
+
         para = self.doc.add_paragraph()
         para.alignment = self._get_alignment(style.get("alignment", "center"))
 
@@ -200,15 +241,20 @@ class XML2DOCXConverter:
             else:
                 para.paragraph_format.space_after = Pt(value)
 
-        img_path = url
-        if not Path(url).is_absolute():
-            img_path = str(Path(self.xml_dir) / url)
+        src = block.get("src", "")
+        if not src:
+            para.add_run("[图片路径为空]")
+            return
+
+        img_path = src
+        if not Path(src).is_absolute():
+            img_path = str(Path(self.json_dir) / src)
 
         try:
             width_cm = style.get("width_cm", 10)
             para.add_run().add_picture(img_path, width=Cm(width_cm))
         except Exception as e:
-            para.add_run(f"[图片加载失败: {url}]")
+            para.add_run(f"[图片加载失败: {src}]")
 
     def _set_table_no_border(self, table):
         tbl = table._element
@@ -256,6 +302,7 @@ class XML2DOCXConverter:
                     )
             return
 
+        # three_line style
         rows = len(table.rows)
         if rows >= 1:
             for cell in table.rows[0].cells:
@@ -269,46 +316,49 @@ class XML2DOCXConverter:
                 for cell in table.rows[-1].cells:
                     self._set_cell_border(cell, bottom="single", left="nil", right="nil")
 
-    def _add_table(self, text, style, attrs):
-        text = text.replace('\n', '').replace('\r', '')
-        rows_data = [row for row in text.split("|") if row.strip()]
-        inferred_rows = len(rows_data)
-        inferred_cols = max((len(row.split(";")) for row in rows_data), default=0)
+    def _add_table_block(self, block, style_name):
+        # 表格样式现在从 block 中获取，而不是从 style.json
+        rows = block.get("rows", 0)
+        cols = block.get("cols", 0)
+        cells = block.get("cells", [])
 
-        rows = int(attrs.get("rows", inferred_rows))
-        cols = int(attrs.get("cols", inferred_cols))
+        # 获取表格样式配置（从 block 中）
+        header_style = block.get("header_style", "default_style_text")
+        body_style = block.get("body_style", "default_style_text")
+        border_style = block.get("border", "three_line")
+        space_after_config = block.get("space_after", {"units": "pt", "value": 12})
 
         if rows <= 0 or cols <= 0:
             return
 
         table = self.doc.add_table(rows=rows, cols=cols)
-        header_style = style["header_style"]
-        body_style = style["body_style"]
-        
-        for i in range(min(rows, len(rows_data))):
-            cells = rows_data[i].split(";")
-            for j in range(min(cols, len(cells))):
+
+        for i in range(min(rows, len(cells))):
+            row_cells = cells[i]
+            for j in range(min(cols, len(row_cells))):
                 cell = table.cell(i, j)
-                cell.text = cells[j].strip()
-                cell_style = header_style if i == 0 else body_style
+                cell.text = str(row_cells[j])
+                cell_style_name = header_style if i == 0 else body_style
+                # 确保样式存在
+                if cell_style_name not in self.styles:
+                    cell_style_name = "default_style_text"
                 for para in cell.paragraphs:
-                    para.style = cell_style
+                    para.style = cell_style_name
                     para.paragraph_format.left_indent = 0
                     para.paragraph_format.first_line_indent = 0
                     para.paragraph_format.hanging_indent = 0
 
-        self._apply_table_borders(table, style["border"])
+        self._apply_table_borders(table, border_style)
 
+        # 表格后的间距
         para = self.doc.add_paragraph()
-        if style.get("space_after"):
-            space_after = style["space_after"]
-            units = space_after.get("units", "pt")
-            value = space_after.get("value", 0)
+        if space_after_config:
+            units = space_after_config.get("units", "pt")
+            value = space_after_config.get("value", 12)
             if units == "line":
                 para.paragraph_format.space_after = Pt(value * 12)
             else:
                 para.paragraph_format.space_after = Pt(value)
-
 
     def _get_alignment(self, align_str):
         mapping = {
@@ -322,16 +372,16 @@ class XML2DOCXConverter:
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python converter.py <xml文件路径> [输出docx路径] [style.json路径]")
-        print("示例: python converter.py input.xml output.docx my_style.json")
+        print("用法: python converter.py <json文件路径> [输出docx路径] [style.json路径]")
+        print("示例: python converter.py input.json output.docx my_style.json")
         return
 
-    xml_path = sys.argv[1]
+    json_path = sys.argv[1]
     output_path = sys.argv[2] if len(sys.argv) > 2 else None
     style_path = sys.argv[3] if len(sys.argv) > 3 else str(Path(__file__).parent / "style.json")
 
-    converter = XML2DOCXConverter(style_path)
-    converter.convert(xml_path, output_path)
+    converter = JSON2DOCXConverter(style_path)
+    converter.convert(json_path, output_path)
 
 
 if __name__ == "__main__":
