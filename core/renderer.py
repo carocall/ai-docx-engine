@@ -7,7 +7,7 @@ from typing import List
 
 from .styles import StyleEngine
 from .parser import Block, ContentParser
-from .blocks import TextHandler, ImageHandler, TableHandler, PageBreakHandler
+from .blocks import TextHandler, HeadingHandler, ImageHandler, TableHandler, TocHandler, PageBreakHandler
 
 
 class DocxRenderer:
@@ -23,6 +23,8 @@ class DocxRenderer:
         """设置处理器链"""
         self.base_dir = base_dir
         self.handlers = [
+            TocHandler(self.doc, self.style_engine, base_dir),
+            HeadingHandler(self.doc, self.style_engine, base_dir),
             TextHandler(self.doc, self.style_engine, base_dir),
             ImageHandler(self.doc, self.style_engine, base_dir),
             TableHandler(self.doc, self.style_engine, base_dir),

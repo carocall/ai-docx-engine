@@ -9,7 +9,9 @@
 ```json
 {
   "blocks": [
-    {"type": "text", "style": "标题1", "runs": [...]},
+    {"type": "toc", "levels": [1, 2, 3]},
+    {"type": "heading", "level": 1, "runs": [...]},
+    {"type": "text", "style": "正文", "runs": [...]},
     {"type": "image", "style": "图片", "src": "..."},
     {"type": "table", "rows": 3, "cols": 3, "cells": [...], ...},
     {"type": "page-break"}
@@ -19,14 +21,139 @@
 
 ## Block 类型
 
-支持4种 Block 类型：
+支持6种 Block 类型：
 
-| 类型 | 说明 |
-|------|------|
-| `text` | 文本段落 |
-| `image` | 图片 |
-| `table` | 表格 |
-| `page-break` | 换页符 |
+| 类型 | 说明 | 职责 |
+|------|------|------|
+| `heading` | 结构化标题 | 定义文档结构（level） |
+| `toc` | 目录 | 收集 heading 结构生成目录 |
+| `text` | 文本段落 | 普通段落内容 |
+| `image` | 图片 | 插入图片 |
+| `table` | 表格 | 插入表格 |
+| `page-break` | 换页符 | 分页 |
+
+### 三层分离原则
+
+- **heading** = 结构（定义标题级别）
+- **toc** = 结构选择（收录哪些级别的标题）
+- **style.json** = 外观（字体、字号、间距等样式）
+
+三者必须分离，互不耦合。
+
+---
+
+## heading 类型
+
+### 基本结构
+
+```json
+{
+  "type": "heading",
+  "level": 1,
+  "id": "intro",
+  "runs": [
+    {"text": "绪论"}
+  ]
+}
+```
+
+### 字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | string | 是 | 固定值 `"heading"` |
+| `level` | number | 是 | 标题级别：1 / 2 / 3 / 4 |
+| `style` | string | 否 | 指定样式名称，覆盖默认映射 |
+| `id` | string | 否 | 书签ID，用于内部跳转引用 |
+| `runs` | array | 否 | Run 数组，支持内联富文本 |
+
+### 说明
+
+- `level` 对应 Word 的 Heading 1/2/3/4
+- renderer 会自动设置 `outlineLevel`，无需在 JSON 中指定
+- **样式优先级**：`style` 字段 > 中文样式名（"标题1"等）> 默认样式（heading1等）
+
+### 示例
+
+```json
+// 使用默认样式映射
+{
+  "type": "heading",
+  "level": 2,
+  "runs": [{"text": "2.1 研究背景"}]
+}
+
+// 指定自定义样式
+{
+  "type": "heading",
+  "level": 2,
+  "style": "我的二级标题",
+  "runs": [{"text": "2.1 研究背景"}]
+}
+
+// 带书签和内联样式
+{
+  "type": "heading",
+  "level": 1,
+  "id": "intro",
+  "runs": [
+    {"text": "第1章 "},
+    {"text": "绪论", "bold": true}
+  ]
+}
+```
+
+---
+
+## toc 类型
+
+### 基本结构
+
+```json
+{
+  "type": "toc",
+  "levels": [1, 2, 3],
+  "style_level_one": "目录一级",
+  "style_level_two": "目录二级",
+  "style_level_three": "目录三级"
+}
+```
+
+### 字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | string | 是 | 固定值 `"toc"` |
+| `levels` | array | 否 | 收录哪些级别的标题，默认 `[1, 2, 3]` |
+| `style_level_one` | string | 否 | TOC 1级样式名称，默认 `"TOC1"` |
+| `style_level_two` | string | 否 | TOC 2级样式名称，默认 `"TOC2"` |
+| `style_level_three` | string | 否 | TOC 3级样式名称，默认 `"TOC3"` |
+
+### 说明
+
+- toc 负责"收集结构"和"指定各级别样式"
+- 生成后会在文档中插入 TOC 域，显示提示文字"点击更新域来更新目录"
+- 用户需要在 Word 中手动更新域（右键 → 更新域）来生成实际目录内容
+- 目录各级别的外观由 `style_level_one/two/three` 指定的样式控制
+
+### 示例
+
+```json
+// 使用默认样式
+{
+  "type": "toc",
+  "levels": [1, 2, 3]
+}
+
+// 指定自定义样式
+{
+  "type": "toc",
+  "levels": [1, 2],
+  "style_level_one": "目录一级",
+  "style_level_two": "目录二级",
+  "style_level_three": "目录三级"
+}
+```
 
 ---
 
@@ -155,36 +282,6 @@
 | `"grid"` | 网格边框（所有边框都显示） |
 | `"three_line"` | 三线表（仅显示顶线、底线和表头底线） |
 
-### 重要变更说明
-
-**表格样式配置已从 style.json 移至内容 JSON 中。**
-
-以前表格样式在 style.json 中配置：
-```json
-{
-  "三线表": {
-    "header_style": "表头",
-    "body_style": "表内文字",
-    "border": "three_line"
-  }
-}
-```
-
-现在表格样式直接在内容 JSON 的 table block 中配置：
-```json
-{
-  "type": "table",
-  "header_style": "表头",
-  "body_style": "表内文字",
-  "border": "three_line"
-}
-```
-
-**优势：**
-1. 每个表格可以独立配置样式
-2. 样式文件只包含纯样式定义，职责更清晰
-3. AI 生成内容时更直观
-
 ---
 
 ## page-break 类型
@@ -213,9 +310,6 @@
     "font_name": "Times New Roman",
     "font_size": 12,
     ...
-  },
-  "样式名称2": {
-    ...
   }
 }
 ```
@@ -227,33 +321,14 @@
 - 取值：Times New Roman, Arial, Calibri, Courier New 等
 - 默认值：Times New Roman
 
-```json
-{
-  "font_name": "Times New Roman"
-}
-```
-
 #### font_name_east_asia
 - 功能：指定东亚字体名称
 - 取值：黑体, 宋体, 楷体, 微软雅黑, 仿宋 等
 - 默认值：宋体
 
-```json
-{
-  "font_name_east_asia": "黑体"
-}
-```
-
 #### font_size
-- 功能：指定字体大小
-- 单位：磅（pt）
+- 功能：指定字体大小（磅）
 - 默认值：12
-
-```json
-{
-  "font_size": 12
-}
-```
 
 字体大小映射：
 - 22磅 = 2号字体
@@ -267,70 +342,22 @@
 - 取值：true 或 false
 - 默认值：false
 
-```json
-{
-  "bold": true
-}
-```
-
 #### alignment
 - 功能：设置段落对齐方式
 - 取值："left", "center", "right", "justify"
 - 默认值："left"
 
-```json
-{
-  "alignment": "center"
-}
-```
-
-#### space_before
-- 功能：设置段前间距
+#### space_before / space_after
+- 功能：设置段前/段后间距
 - 格式：`{"units": "pt"|"line", "value": number}`
-- 默认值：0
-
-```json
-{
-  "space_before": {"units": "pt", "value": 24}
-}
-```
-
-#### space_after
-- 功能：设置段后间距
-- 格式：`{"units": "pt"|"line", "value": number}`
-- 默认值：0
-
-```json
-{
-  "space_after": {"units": "line", "value": 1.5}
-}
-```
 
 #### firstLineChars
 - 功能：设置首行缩进的字符数
 - 单位：字符宽度的 1/100，200 表示缩进 2 个字符
 
-```json
-{
-  "firstLineChars": 200
-}
-```
-
 #### line_spacing
 - 功能：设置行间距
 - 格式：`{"units": "pt"|"line", "value": number}`
-
-```json
-{
-  "line_spacing": {"units": "pt", "value": 22}
-}
-```
-或
-```json
-{
-  "line_spacing": {"units": "line", "value": 1.5}
-}
-```
 
 ---
 
@@ -342,8 +369,8 @@
 {
   "blocks": [
     {
-      "type": "text",
-      "style": "标题1",
+      "type": "heading",
+      "level": 1,
       "runs": [{"text": "1 引言"}]
     },
     {
@@ -354,6 +381,16 @@
         {"text": "重要问题", "bold": true},
         {"text": "的解决方案。"}
       ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "runs": [{"text": "1.1 研究背景"}]
+    },
+    {
+      "type": "text",
+      "style": "正文",
+      "runs": [{"text": "正文内容..."}]
     },
     {
       "type": "table",
@@ -384,6 +421,14 @@
     "font_name": "Times New Roman",
     "font_name_east_asia": "黑体",
     "font_size": 22,
+    "bold": true,
+    "alignment": "center",
+    "line_spacing": {"units": "line", "value": 1.5}
+  },
+  "标题2": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "黑体",
+    "font_size": 16,
     "bold": true,
     "line_spacing": {"units": "line", "value": 1.5}
   },
@@ -418,13 +463,12 @@
 ## 转换命令
 
 ```bash
-python converter.py <json文件路径> [输出docx路径] [style.json路径]
+python -m core.converter <content.json> <style.json> <output.docx>
 ```
 
 示例：
 ```bash
-python converter.py document.json output.docx style.json
+python -m core.converter document.json style.json output.docx
 ```
 
-- 如果不指定输出路径，则自动在 JSON 同目录下生成同名 .docx 文件
-- 如果不指定 style.json 路径，则默认使用 converter.py 同目录下的 style.json
+**注意：三个参数都必须提供。**

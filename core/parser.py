@@ -51,6 +51,32 @@ class TableBlock(Block):
         self.space_after = space_after or {"units": "pt", "value": 12}
 
 
+class HeadingBlock(Block):
+    """标题块"""
+
+    def __init__(self, level: int = 1, block_id: str = None, style: str = None,
+                 runs: List[Dict] = None, raw_data: dict = None):
+        super().__init__("heading", style, raw_data)
+        self.level = level
+        self.id = block_id or ""
+        self.runs = runs or []
+
+
+class TocBlock(Block):
+    """目录块"""
+
+    def __init__(self, levels: List[int] = None,
+                 style_level_one: str = None,
+                 style_level_two: str = None,
+                 style_level_three: str = None,
+                 raw_data: dict = None):
+        super().__init__("toc", None, raw_data)
+        self.levels = levels or [1, 2, 3]
+        self.style_level_one = style_level_one
+        self.style_level_two = style_level_two
+        self.style_level_three = style_level_three
+
+
 class PageBreakBlock(Block):
     """分页块"""
 
@@ -82,8 +108,10 @@ class ContentParser:
 
         parsers = {
             "text": self._parse_text_block,
+            "heading": self._parse_heading_block,
             "image": self._parse_image_block,
             "table": self._parse_table_block,
+            "toc": self._parse_toc_block,
             "page-break": self._parse_page_break_block,
         }
 
@@ -93,6 +121,16 @@ class ContentParser:
     def _parse_text_block(self, data: dict) -> TextBlock:
         """解析文本块"""
         return TextBlock(
+            style=data.get("style"),
+            runs=data.get("runs", []),
+            raw_data=data
+        )
+
+    def _parse_heading_block(self, data: dict) -> HeadingBlock:
+        """解析标题块"""
+        return HeadingBlock(
+            level=data.get("level", 1),
+            block_id=data.get("id"),
             style=data.get("style"),
             runs=data.get("runs", []),
             raw_data=data
@@ -117,6 +155,16 @@ class ContentParser:
             body_style=data.get("body_style", "default_style_text"),
             border=data.get("border", "three_line"),
             space_after=data.get("space_after", {"units": "pt", "value": 12}),
+            raw_data=data
+        )
+
+    def _parse_toc_block(self, data: dict) -> TocBlock:
+        """解析目录块"""
+        return TocBlock(
+            levels=data.get("levels", [1, 2, 3]),
+            style_level_one=data.get("style_level_one"),
+            style_level_two=data.get("style_level_two"),
+            style_level_three=data.get("style_level_three"),
             raw_data=data
         )
 

@@ -1,7 +1,15 @@
 {
   "blocks": [
     {
-      "type": "text",
+      "type": "toc",
+      "levels": [1, 2, 3],
+      "style_level_one": "目录一级",
+      "style_level_two": "目录二级",
+      "style_level_three": "目录三级"
+    },
+    {
+      "type": "heading",
+      "level": 1,
       "style": "标题1",
       "runs": [
         {"text": "1 项目概述"}
@@ -27,7 +35,8 @@
       ]
     },
     {
-      "type": "text",
+      "type": "heading",
+      "level": 2,
       "style": "标题2",
       "runs": [
         {"text": "1.1 表格示例"}
@@ -67,17 +76,11 @@
       "type": "page-break"
     },
     {
-      "type": "text",
+      "type": "heading",
+      "level": 1,
       "style": "标题1",
       "runs": [
-        {"text": "2 第二章"}
-      ]
-    },
-    {
-      "type": "text",
-      "style": "正文",
-      "runs": [
-        {"text": "这里演示 page-break 类型生成换页符。"}
+        {"text": "2 内联样式演示"}
       ]
     },
     {
@@ -106,6 +109,56 @@
         {"text": " 和 "},
         {"text": "高亮背景", "highlight": "FFFF00"},
         {"text": "。"}
+      ]
+    },
+    {
+      "type": "page-break"
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "style": "标题1",
+      "runs": [
+        {"text": "3 目录与标题演示"}
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "style": "标题2",
+      "id": "toc-demo",
+      "runs": [
+        {"text": "3.1 这是一个二级标题"}
+      ]
+    },
+    {
+      "type": "text",
+      "style": "正文",
+      "runs": [
+        {"text": "heading 类型会自动设置 outlineLevel，Word 可以识别为标题结构，用于生成目录。"}
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "style": "标题3",
+      "runs": [
+        {"text": "3.1.1 这是一个三级标题"}
+      ]
+    },
+    {
+      "type": "text",
+      "style": "正文",
+      "runs": [
+        {"text": "支持 1/2/3/4 级标题，由 level 字段控制。"}
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "style": "标题2",
+      "runs": [
+        {"text": "3.2 边界情况测试"}
       ]
     },
     {
