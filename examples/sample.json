@@ -25,7 +25,7 @@
     {
       "type": "image",
       "style": "图片",
-      "src": "images/样例.png"
+      "src": "images/prj_logo.png"
     },
     {
       "type": "text",
@@ -186,7 +186,7 @@
     {
       "type": "image",
       "style": "图片",
-      "src": "images/样例.png"
+      "src": "images/prj_logo.png"
     }
   ]
 }
