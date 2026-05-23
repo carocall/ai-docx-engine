@@ -1,5 +1,5 @@
 """
-表格块处理器
+表格块处理器（严格模式）
 """
 from docx.shared import Pt
 
@@ -7,6 +7,7 @@ from .base import BlockHandler
 from ..parser import TableBlock
 from ..utils.borders import BorderHelper
 from ..utils.spacing import SpacingHelper
+from ..styles import StyleNotFoundError
 
 
 class TableHandler(BlockHandler):
@@ -20,6 +21,18 @@ class TableHandler(BlockHandler):
         if block.rows <= 0 or block.cols <= 0:
             return None
 
+        # 验证表头样式
+        if block.header_style:
+            self.style_engine.require_style(block.header_style, "table header")
+        else:
+            raise StyleNotFoundError("table: 未指定 header_style")
+
+        # 验证表体样式
+        if block.body_style:
+            self.style_engine.require_style(block.body_style, "table body")
+        else:
+            raise StyleNotFoundError("table: 未指定 body_style")
+
         # 创建表格
         table = self.doc.add_table(rows=block.rows, cols=block.cols)
 
@@ -32,8 +45,6 @@ class TableHandler(BlockHandler):
 
                 # 应用单元格样式
                 cell_style_name = block.header_style if i == 0 else block.body_style
-                if not self.style_engine.has_style(cell_style_name):
-                    cell_style_name = "default_style_text"
 
                 for para in cell.paragraphs:
                     para.style = cell_style_name

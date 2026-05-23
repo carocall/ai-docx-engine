@@ -1,10 +1,11 @@
 """
-JSON to DOCX 转换器 - CLI入口
+JSON to DOCX 转换器 - CLI入口（严格模式）
 """
 import sys
 from pathlib import Path
 
 from .renderer import DocxRenderer
+from .styles import StyleNotFoundError
 
 
 def print_usage():
@@ -44,6 +45,9 @@ def main():
 
     except FileNotFoundError as e:
         print(f"错误: {e}")
+        sys.exit(1)
+    except StyleNotFoundError as e:
+        print(f"样式错误: {e}")
         sys.exit(1)
     except Exception as e:
         print(f"转换失败: {e}")

@@ -1,5 +1,5 @@
 """
-标题块处理器 - 自动设置 outlineLevel
+标题块处理器 - 自动设置 outlineLevel（严格模式）
 """
 from docx.shared import RGBColor
 from docx.oxml.ns import qn
@@ -7,18 +7,11 @@ from docx.oxml import OxmlElement
 
 from .base import BlockHandler
 from ..parser import HeadingBlock
+from ..styles import StyleNotFoundError
 
 
 class HeadingHandler(BlockHandler):
     """标题块处理器"""
-
-    # level -> 默认样式名称映射（当用户未指定 style 时使用）
-    LEVEL_STYLE_MAP = {
-        1: "heading1",
-        2: "heading2",
-        3: "heading3",
-        4: "heading4",
-    }
 
     def can_handle(self, block) -> bool:
         return isinstance(block, HeadingBlock)
@@ -27,19 +20,12 @@ class HeadingHandler(BlockHandler):
         """处理标题块"""
         level = max(1, min(block.level, 4))  # 限制在 1-4
 
-        # 确定样式名称
-        if block.style:
-            # 用户指定了样式，优先使用
-            style_name = block.style
-        else:
-            # 使用默认映射
-            style_name = self.LEVEL_STYLE_MAP.get(level, "heading1")
+        # 样式名称必须显式指定
+        if not block.style:
+            raise StyleNotFoundError(f"heading (level={level}): 未指定 style")
 
-            # 如果用户在 style.json 中定义了中文样式名（如"标题1"），优先使用
-            cn_style_map = {1: "标题1", 2: "标题2", 3: "标题3", 4: "标题4"}
-            cn_style = cn_style_map.get(level)
-            if cn_style and self.style_engine.has_style(cn_style):
-                style_name = cn_style
+        style_name = block.style
+        self.style_engine.require_style(style_name, f"heading (level={level})")
 
         # 创建段落并应用样式
         para = self.doc.add_paragraph(style=style_name)

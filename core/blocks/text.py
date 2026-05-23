@@ -1,5 +1,5 @@
 """
-文本块处理器
+文本块处理器（严格模式）
 """
 from docx.shared import RGBColor
 from docx.oxml.ns import qn
@@ -7,6 +7,7 @@ from docx.oxml import OxmlElement
 
 from .base import BlockHandler
 from ..parser import TextBlock
+from ..styles import StyleNotFoundError
 
 
 class TextHandler(BlockHandler):
@@ -17,11 +18,17 @@ class TextHandler(BlockHandler):
 
     def handle(self, block: TextBlock):
         """处理文本块"""
-        # 获取样式
-        actual_style_name, _ = self.style_engine.resolve_style("text", block.style)
+        # 确定样式名称
+        if block.style:
+            # 用户指定了样式，严格检查必须存在
+            style_name = block.style
+            self.style_engine.require_style(style_name, "text")
+        else:
+            # 未指定样式，报错
+            raise StyleNotFoundError("text: 未指定样式名称")
 
         # 创建段落
-        para = self.doc.add_paragraph(style=actual_style_name)
+        para = self.doc.add_paragraph(style=style_name)
 
         # 处理 runs
         if not block.runs:

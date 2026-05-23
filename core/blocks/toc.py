@@ -1,11 +1,12 @@
 """
-目录块处理器 - 插入 TOC 域
+目录块处理器 - 插入 TOC 域（严格模式）
 """
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 from .base import BlockHandler
 from ..parser import TocBlock
+from ..styles import StyleNotFoundError
 
 
 class TocHandler(BlockHandler):
@@ -16,17 +17,15 @@ class TocHandler(BlockHandler):
 
     def handle(self, block: TocBlock):
         """处理目录块 - 插入 TOC 域和提示文字"""
-        # 获取各级别样式
-
-        toc_style1 = styles["TOC1"]
-        toc_style2 = styles["TOC2"]
-        toc_style3 = styles["TOC3"]
-
+        # 确定各级别样式
         style_level_one = block.style_level_one or "TOC1"
         style_level_two = block.style_level_two or "TOC2"
         style_level_three = block.style_level_three or "TOC3"
 
-        print(block.style_level_one, block.style_level_two, block.style_level_three)
+        # 严格检查样式必须存在
+        self.style_engine.require_style(style_level_one, "toc level 1")
+        self.style_engine.require_style(style_level_two, "toc level 2")
+        self.style_engine.require_style(style_level_three, "toc level 3")
 
         para = self.doc.add_paragraph()
 

@@ -2,6 +2,15 @@
 
 本项目将内容文件从 XML 改为 JSON 格式，样式文件保持 JSON 不变。
 
+**重要：严格模式 - 所有样式必须显式指定**
+
+- 不再提供任何默认样式
+- 所有 Block 的 `style` 字段必须显式指定
+- 引用的样式必须在 `style.json` 中定义
+- 样式不存在或未指定时，转换会报错终止
+
+---
+
 ## 内容文件结构（JSON）
 
 内容文件采用扁平化的 Block + Run 架构：
@@ -9,15 +18,17 @@
 ```json
 {
   "blocks": [
-    {"type": "toc", "levels": [1, 2, 3]},
-    {"type": "heading", "level": 1, "runs": [...]},
+    {"type": "toc", "levels": [1, 2, 3], "style_level_one": "目录一级", ...},
+    {"type": "heading", "level": 1, "style": "标题1", "runs": [...]},
     {"type": "text", "style": "正文", "runs": [...]},
     {"type": "image", "style": "图片", "src": "..."},
-    {"type": "table", "rows": 3, "cols": 3, "cells": [...], ...},
+    {"type": "table", "style": "表格", "rows": 3, "cols": 3, "cells": [...], "header_style": "表头", "body_style": "表内文字", ...},
     {"type": "page-break"}
   ]
 }
 ```
+
+---
 
 ## Block 类型
 
@@ -25,20 +36,12 @@
 
 | 类型 | 说明 | 职责 |
 |------|------|------|
-| `heading` | 结构化标题 | 定义文档结构（level） |
+| `heading` | 结构化标题 | 定义文档结构（level + style） |
 | `toc` | 目录 | 收集 heading 结构生成目录 |
 | `text` | 文本段落 | 普通段落内容 |
 | `image` | 图片 | 插入图片 |
 | `table` | 表格 | 插入表格 |
 | `page-break` | 换页符 | 分页 |
-
-### 三层分离原则
-
-- **heading** = 结构（定义标题级别）
-- **toc** = 结构选择（收录哪些级别的标题）
-- **style.json** = 外观（字体、字号、间距等样式）
-
-三者必须分离，互不耦合。
 
 ---
 
@@ -50,6 +53,7 @@
 {
   "type": "heading",
   "level": 1,
+  "style": "标题1",
   "id": "intro",
   "runs": [
     {"text": "绪论"}
@@ -63,43 +67,31 @@
 |------|------|------|------|
 | `type` | string | 是 | 固定值 `"heading"` |
 | `level` | number | 是 | 标题级别：1 / 2 / 3 / 4 |
-| `style` | string | 否 | 指定样式名称，覆盖默认映射 |
+| `style` | string | **是** | **必须在 style.json 中定义的样式名称** |
 | `id` | string | 否 | 书签ID，用于内部跳转引用 |
 | `runs` | array | 否 | Run 数组，支持内联富文本 |
 
-### 说明
+### 严格模式说明
 
-- `level` 对应 Word 的 Heading 1/2/3/4
-- renderer 会自动设置 `outlineLevel`，无需在 JSON 中指定
-- **样式优先级**：`style` 字段 > 中文样式名（"标题1"等）> 默认样式（heading1等）
+- `style` 字段**必须显式指定**，不再提供默认映射
+- 指定的样式必须在 `style.json` 中存在
+- `level` 用于设置 Word 的 `outlineLevel`，与样式名称无关
 
 ### 示例
 
 ```json
-// 使用默认样式映射
 {
   "type": "heading",
-  "level": 2,
-  "runs": [{"text": "2.1 研究背景"}]
+  "level": 1,
+  "style": "标题1",
+  "runs": [{"text": "1 绪论"}]
 }
 
-// 指定自定义样式
 {
   "type": "heading",
   "level": 2,
   "style": "我的二级标题",
   "runs": [{"text": "2.1 研究背景"}]
-}
-
-// 带书签和内联样式
-{
-  "type": "heading",
-  "level": 1,
-  "id": "intro",
-  "runs": [
-    {"text": "第1章 "},
-    {"text": "绪论", "bold": true}
-  ]
 }
 ```
 
@@ -125,30 +117,23 @@
 |------|------|------|------|
 | `type` | string | 是 | 固定值 `"toc"` |
 | `levels` | array | 否 | 收录哪些级别的标题，默认 `[1, 2, 3]` |
-| `style_level_one` | string | 否 | TOC 1级样式名称，默认 `"TOC1"` |
-| `style_level_two` | string | 否 | TOC 2级样式名称，默认 `"TOC2"` |
-| `style_level_three` | string | 否 | TOC 3级样式名称，默认 `"TOC3"` |
+| `style_level_one` | string | **是** | **TOC 1级样式名称，必须在 style.json 中定义** |
+| `style_level_two` | string | **是** | **TOC 2级样式名称，必须在 style.json 中定义** |
+| `style_level_three` | string | **是** | **TOC 3级样式名称，必须在 style.json 中定义** |
 
-### 说明
+### 严格模式说明
 
-- toc 负责"收集结构"和"指定各级别样式"
+- 三个样式字段**必须显式指定**
+- 指定的样式必须在 `style.json` 中存在
 - 生成后会在文档中插入 TOC 域，显示提示文字"点击更新域来更新目录"
 - 用户需要在 Word 中手动更新域（右键 → 更新域）来生成实际目录内容
-- 目录各级别的外观由 `style_level_one/two/three` 指定的样式控制
 
 ### 示例
 
 ```json
-// 使用默认样式
 {
   "type": "toc",
-  "levels": [1, 2, 3]
-}
-
-// 指定自定义样式
-{
-  "type": "toc",
-  "levels": [1, 2],
+  "levels": [1, 2, 3],
   "style_level_one": "目录一级",
   "style_level_two": "目录二级",
   "style_level_three": "目录三级"
@@ -178,8 +163,13 @@
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `type` | string | 是 | 固定值 `"text"` |
-| `style` | string | 否 | 引用的样式名称，不存在则使用默认样式 |
+| `style` | string | **是** | **必须在 style.json 中定义的样式名称** |
 | `runs` | array | 否 | Run 数组，每个 Run 是一段带有格式的文字 |
+
+### 严格模式说明
+
+- `style` 字段**必须显式指定**，不再提供默认回退
+- 指定的样式必须在 `style.json` 中存在
 
 ### Run 内联样式
 
@@ -233,8 +223,13 @@
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `type` | string | 是 | 固定值 `"image"` |
-| `style` | string | 否 | 引用的样式名称 |
+| `style` | string | **是** | **必须在 style.json 中定义的样式名称** |
 | `src` | string | 是 | 图片路径（相对或绝对） |
+
+### 严格模式说明
+
+- `style` 字段**必须显式指定**，不再提供默认回退
+- 指定的样式必须在 `style.json` 中存在
 
 ---
 
@@ -265,14 +260,19 @@
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `type` | string | 是 | 固定值 `"table"` |
-| `style` | string | 否 | 引用的样式名称（主要用于段落样式） |
+| `style` | string | **是** | **必须在 style.json 中定义的样式名称** |
 | `rows` | number | 是 | 表格行数 |
 | `cols` | number | 是 | 表格列数 |
 | `cells` | array | 是 | 二维数组，表示单元格内容 |
-| `header_style` | string | 否 | 表头行使用的样式名称，默认 `"default_style_text"` |
-| `body_style` | string | 否 | 表体行使用的样式名称，默认 `"default_style_text"` |
+| `header_style` | string | **是** | **表头行使用的样式名称，必须在 style.json 中定义** |
+| `body_style` | string | **是** | **表体行使用的样式名称，必须在 style.json 中定义** |
 | `border` | string | 否 | 边框样式：`"none"`、`"grid"`、`"three_line"`，默认 `"three_line"` |
 | `space_after` | object | 否 | 表格后间距 |
+
+### 严格模式说明
+
+- `style`、`header_style`、`body_style` **必须显式指定**
+- 所有样式必须在 `style.json` 中存在
 
 ### 边框样式说明
 
@@ -302,6 +302,8 @@
 
 样式文件定义段落级别的样式，供内容文件引用。
 
+**重要：所有在内容文件中引用的样式必须在此定义**
+
 ### 基本结构
 
 ```json
@@ -314,21 +316,18 @@
 }
 ```
 
-### 可选样式属性
+### 样式属性
 
 #### font_name
 - 功能：指定西文字体名称
 - 取值：Times New Roman, Arial, Calibri, Courier New 等
-- 默认值：Times New Roman
 
 #### font_name_east_asia
 - 功能：指定东亚字体名称
 - 取值：黑体, 宋体, 楷体, 微软雅黑, 仿宋 等
-- 默认值：宋体
 
 #### font_size
 - 功能：指定字体大小（磅）
-- 默认值：12
 
 字体大小映射：
 - 22磅 = 2号字体
@@ -340,12 +339,10 @@
 #### bold
 - 功能：设置字体是否加粗
 - 取值：true 或 false
-- 默认值：false
 
 #### alignment
 - 功能：设置段落对齐方式
 - 取值："left", "center", "right", "justify"
-- 默认值："left"
 
 #### space_before / space_after
 - 功能：设置段前/段后间距
@@ -369,8 +366,16 @@
 {
   "blocks": [
     {
+      "type": "toc",
+      "levels": [1, 2, 3],
+      "style_level_one": "目录一级",
+      "style_level_two": "目录二级",
+      "style_level_three": "目录三级"
+    },
+    {
       "type": "heading",
       "level": 1,
+      "style": "标题1",
       "runs": [{"text": "1 引言"}]
     },
     {
@@ -385,6 +390,7 @@
     {
       "type": "heading",
       "level": 2,
+      "style": "标题2",
       "runs": [{"text": "1.1 研究背景"}]
     },
     {
@@ -394,6 +400,7 @@
     },
     {
       "type": "table",
+      "style": "表格",
       "rows": 2,
       "cols": 2,
       "cells": [
@@ -438,6 +445,21 @@
     "font_size": 12,
     "firstLineChars": 200
   },
+  "目录一级": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "黑体",
+    "font_size": 14
+  },
+  "目录二级": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "宋体",
+    "font_size": 12
+  },
+  "目录三级": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "宋体",
+    "font_size": 11
+  },
   "表头": {
     "font_name": "Arial",
     "font_name_east_asia": "宋体",
@@ -472,3 +494,17 @@ python -m core.converter document.json style.json output.docx
 ```
 
 **注意：三个参数都必须提供。**
+
+---
+
+## 错误处理
+
+严格模式下，以下情况会报错并终止转换：
+
+| 错误类型 | 说明 |
+|----------|------|
+| 样式文件不存在 | `样式文件不存在: xxx.json` |
+| 样式文件为空 | `样式文件为空` |
+| 样式未指定 | `heading (level=1): 未指定 style` |
+| 样式不存在 | `text: 样式不存在 '正文'` |
+| TOC样式不存在 | `toc level 1: 样式不存在 '目录一级'` |

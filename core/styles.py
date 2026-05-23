@@ -1,5 +1,5 @@
 """
-样式引擎 - 管理样式加载、合并和注册
+样式引擎 - 严格模式：样式必须存在，否则报错
 """
 import json
 from pathlib import Path
@@ -11,49 +11,34 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 
-class StyleEngine:
-    """样式引擎，负责样式的加载、合并和注册"""
+class StyleNotFoundError(Exception):
+    """样式不存在错误"""
+    pass
 
-    DEFAULT_STYLE_NAMES = {
-        "text": "default_style_text",
-        "image": "default_style_image",
-        "table": "default_style_table"
-    }
+
+class StyleEngine:
+    """样式引擎，负责样式的加载和注册（严格模式）"""
 
     def __init__(self, doc: Document, user_style_path: str = None):
         self.doc = doc
-        self.styles = self._load_and_merge_styles(user_style_path)
+        self.styles = self._load_styles(user_style_path)
         self._register_styles()
 
-    def _load_and_merge_styles(self, user_style_path: str = None) -> dict:
-        """加载并合并默认样式和用户样式"""
-        default_style_path = Path(__file__).parent.parent / "default_style.json"
-        default_styles = self._load_json(default_style_path)
-        user_styles = self._load_json(user_style_path) if user_style_path else {}
-        return self._merge_styles(default_styles, user_styles)
+    def _load_styles(self, user_style_path: str = None) -> dict:
+        """加载用户样式文件"""
+        if not user_style_path:
+            raise StyleNotFoundError("未提供样式文件路径")
 
-    @staticmethod
-    def _load_json(path) -> dict:
-        """加载JSON文件"""
-        if not path:
-            return {}
-        path = Path(path)
+        path = Path(user_style_path)
         if not path.exists():
-            return {}
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            raise StyleNotFoundError(f"样式文件不存在: {user_style_path}")
 
-    @staticmethod
-    def _merge_styles(base_styles: dict, override_styles: dict) -> dict:
-        """合并样式，override_styles 优先级更高"""
-        styles = {name: value.copy() for name, value in base_styles.items()}
-        for name, override in override_styles.items():
-            if name in styles and isinstance(styles[name], dict) and isinstance(override, dict):
-                merged = styles[name].copy()
-                merged.update(override)
-                styles[name] = merged
-            else:
-                styles[name] = override
+        with open(path, 'r', encoding='utf-8') as f:
+            styles = json.load(f)
+
+        if not styles:
+            raise StyleNotFoundError("样式文件为空")
+
         return styles
 
     def _register_styles(self):
@@ -137,28 +122,18 @@ class StyleEngine:
             setattr(para_format, attr_name, Pt(0))
 
     def get_style(self, style_name: str) -> dict:
-        """获取样式定义"""
-        return self.styles.get(style_name, {})
+        """获取样式定义，不存在则报错"""
+        if style_name not in self.styles:
+            raise StyleNotFoundError(f"样式不存在: '{style_name}'")
+        return self.styles[style_name]
 
-    def resolve_style(self, element_type: str, requested_style_name: str = None) -> tuple:
-        """
-        解析最终使用的样式
-        返回: (actual_style_name, style_props)
-        """
-        default_style_name = self.DEFAULT_STYLE_NAMES.get(element_type, "default_style_text")
-
-        # 确定实际使用的样式名称
-        if requested_style_name and requested_style_name in self.styles:
-            actual_style_name = requested_style_name
-        else:
-            actual_style_name = default_style_name
-
-        # 合并默认样式和实际样式
-        default_style = self.styles.get(default_style_name, {}).copy()
-        actual_style = self.styles.get(actual_style_name, {})
-        default_style.update(actual_style)
-
-        return actual_style_name, default_style
+    def require_style(self, style_name: str, context: str = ""):
+        """要求样式必须存在，否则报错"""
+        if not style_name:
+            raise StyleNotFoundError(f"{context}: 样式名称为空")
+        if style_name not in self.styles:
+            raise StyleNotFoundError(f"{context}: 样式不存在 '{style_name}'")
+        return style_name
 
     def has_style(self, style_name: str) -> bool:
         """检查样式是否存在"""

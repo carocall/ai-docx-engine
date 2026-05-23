@@ -38,28 +38,48 @@
   "正文": {
     "font_name": "Times New Roman",
     "font_name_east_asia": "宋体",
-    "font_size": 14,
-       "bold": true,
+    "font_size": 12,
     "line_spacing": {"units": "pt", "value": 22},
     "firstLineChars": 200
-  },  "目录一级": {
+  },
+  "目录一级": {
     "font_name": "Times New Roman",
     "font_name_east_asia": "黑体",
     "font_size": 14,
     "line_spacing": {"units": "pt", "value": 18},
     "firstLineChars": 200
-  },  "目录二级": {
+  },
+  "目录二级": {
     "font_name": "Times New Roman",
     "font_name_east_asia": "宋体",
     "font_size": 12,
     "line_spacing": {"units": "pt", "value": 22},
     "firstLineChars": 200
-  },  "目录三级": {
+  },
+  "目录三级": {
     "font_name": "Times New Roman",
     "font_name_east_asia": "宋体",
     "font_size": 12,
     "line_spacing": {"units": "pt", "value": 0},
     "firstLineChars": 200
+  },
+  "TOC1": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "黑体",
+    "font_size": 14,
+    "line_spacing": {"units": "pt", "value": 18}
+  },
+  "TOC2": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "宋体",
+    "font_size": 12,
+    "line_spacing": {"units": "pt", "value": 16}
+  },
+  "TOC3": {
+    "font_name": "Times New Roman",
+    "font_name_east_asia": "宋体",
+    "font_size": 11,
+    "line_spacing": {"units": "pt", "value": 14}
   },
   "图注": {
     "font_name": "Times New Roman",

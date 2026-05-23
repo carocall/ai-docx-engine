@@ -1,5 +1,5 @@
 """
-图片块处理器
+图片块处理器（严格模式）
 """
 from pathlib import Path
 from docx.shared import Cm
@@ -8,6 +8,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from .base import BlockHandler
 from ..parser import ImageBlock
 from ..utils.spacing import SpacingHelper
+from ..styles import StyleNotFoundError
 
 
 class ImageHandler(BlockHandler):
@@ -18,8 +19,15 @@ class ImageHandler(BlockHandler):
 
     def handle(self, block: ImageBlock):
         """处理图片块"""
-        # 获取样式
-        _, style = self.style_engine.resolve_style("image", block.style)
+        # 确定样式
+        if block.style:
+            # 用户指定了样式，严格检查必须存在
+            style_name = block.style
+            self.style_engine.require_style(style_name, "image")
+            style = self.style_engine.get_style(style_name)
+        else:
+            # 未指定样式，报错
+            raise StyleNotFoundError("image: 未指定样式名称")
 
         # 创建段落
         para = self.doc.add_paragraph()
