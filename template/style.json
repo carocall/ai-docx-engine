@@ -75,22 +75,22 @@
   "inner_tablecaption": {
     "font_name": "Times New Roman",
     "font_name_east_asia": "楷体",
-    "font_size": 14,
+    "font_size": 12,
     "alignment": "center",
     "space_before": {"units": "pt", "value": 6},
     "space_after": {"units": "pt", "value": 12}
   },
   "inner_tableheader": {
-    "font_name": "Arial",
+    "font_name": "Times New Roman",
     "font_name_east_asia": "宋体",
-    "font_size": 14,
+    "font_size": 10,
     "bold": true,
     "alignment": "center"
   },
   "inner_tablebody": {
     "font_name": "Times New Roman",
     "font_name_east_asia": "宋体",
-    "font_size": 14,
+    "font_size": 10,
     "alignment": "center"
   },
   "inner_image": {
