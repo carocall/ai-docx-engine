@@ -43,6 +43,7 @@ ai-docx-engineer/
 - 如果需要从零开始，那么先复制/template目录到项目根目录，然后修改content.json和style.json文件。
 - 如果需要修改已有的项目，那么直接修改content.json和style.json文件。
 - 如果需要添加新的样式，那么在style.json文件中添加新的样式定义。
+- 此外，如果用户要生成较长的文档，比如写学术论文，那么建议把文档内容拆分成多个JSON文件，每个文件对应一个章节（比如摘要，第一章，第二章，第三章，参考文献，结语等）。最后转换的时候再合并。
 ### 标准项目目录规范
 复制 `template/` 目录作为项目起点：
 ```
@@ -52,7 +53,9 @@ my_document/
 ├── images/               # 图片资源（可选）
 │   ├── fig1.png
 │   └── fig2.png
-└── output.docx           # 输出文件（生成）
+└── outputs/               # 输出文件夹（生成）
+└── others/               # 其他资源（可选）
+│   └── 系统用例图.xml      # 其他资源，比如一个符合drawio的系统用例图XML文件
 ```
 ## 快速开始
 
@@ -65,7 +68,7 @@ python -m core.converter <content.json> <style.json> <output.docx>
 ### 示例
 
 ```bash
-python -m core.converter template/content.json template/style.json template/output.docx
+python -m core.converter template/content.json template/style.json template/outputs/output.docx
 ```
 ## 内容文件格式 (content.json)
 
@@ -177,7 +180,6 @@ python -m core.converter template/content.json template/style.json template/outp
 ## 详细规范
 具体书写规范参考同目录下 `style_table.md` 文件。
 ## 完整模板
-
 参见 `template/` 目录：
 - `content.json` - 模板内容文件
 - `style.json` - 模板样式文件
