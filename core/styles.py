@@ -109,6 +109,21 @@ class StyleEngine:
             else:
                 para_style.paragraph_format.line_spacing = value
 
+        # 设置段落背景色
+        if style_props.get("background_color"):
+            bg_color = str(style_props["background_color"]).lstrip('#')
+            pPr = para_style.element.get_or_add_pPr()
+            shading = OxmlElement('w:shd')
+            shading.set(qn('w:val'), 'clear')
+            shading.set(qn('w:color'), 'auto')
+            shading.set(qn('w:fill'), bg_color)
+            pPr.append(shading)
+
+        # 设置左缩进（厘米）
+        if style_props.get("left_indent_cm"):
+            from docx.shared import Cm
+            para_style.paragraph_format.left_indent = Cm(style_props["left_indent_cm"])
+
     def _set_spacing(self, para_format, attr_name: str, spacing_config):
         """设置段落间距"""
         if spacing_config:

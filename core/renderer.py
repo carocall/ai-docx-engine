@@ -7,7 +7,7 @@ from typing import List
 
 from .styles import StyleEngine
 from .parser import Block, ContentParser
-from .blocks import TextHandler, HeadingHandler, ImageHandler, TableHandler, TocHandler, PageBreakHandler
+from .blocks import TextHandler, HeadingHandler, ImageHandler, TableHandler, TocHandler, PageBreakHandler, CodeHandler
 
 
 class DocxRenderer:
@@ -26,6 +26,7 @@ class DocxRenderer:
             TocHandler(self.doc, self.style_engine, base_dir),
             HeadingHandler(self.doc, self.style_engine, base_dir),
             TextHandler(self.doc, self.style_engine, base_dir),
+            CodeHandler(self.doc, self.style_engine, base_dir),
             ImageHandler(self.doc, self.style_engine, base_dir),
             TableHandler(self.doc, self.style_engine, base_dir),
             PageBreakHandler(self.doc, self.style_engine, base_dir),

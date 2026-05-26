@@ -198,6 +198,30 @@
       "type": "image",
       "style": "inner_image",
       "src": "images/prj_logo.png"
+    },
+    {
+      "type": "page-break"
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "style": "inner_heading1",
+      "runs": [
+        {"text": "4 代码块演示"}
+      ]
+    },
+    {
+      "type": "text",
+      "style": "inner_body",
+      "runs": [
+        {"text": "代码块是独立的 block 类型，使用等宽字体、灰背景、缩进，保留原始换行和空格。"}
+      ]
+    },
+    {
+      "type": "code",
+      "language": "python",
+      "style": "inner_code",
+      "content": "def hello():\n    print('hello world')\n    for i in range(10):\n        print(i)"
     }
   ]
 }

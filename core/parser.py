@@ -84,6 +84,16 @@ class PageBreakBlock(Block):
         super().__init__("page-break", None, raw_data)
 
 
+class CodeBlock(Block):
+    """代码块"""
+
+    def __init__(self, language: str = "", style: str = None,
+                 content: str = "", raw_data: dict = None):
+        super().__init__("code", style, raw_data)
+        self.language = language or ""
+        self.content = content or ""
+
+
 class ContentParser:
     """内容解析器，将JSON解析为Block对象"""
 
@@ -113,6 +123,7 @@ class ContentParser:
             "table": self._parse_table_block,
             "toc": self._parse_toc_block,
             "page-break": self._parse_page_break_block,
+            "code": self._parse_code_block,
         }
 
         parser = parsers.get(block_type, self._parse_text_block)
@@ -171,6 +182,15 @@ class ContentParser:
     def _parse_page_break_block(self, data: dict) -> PageBreakBlock:
         """解析分页块"""
         return PageBreakBlock(raw_data=data)
+
+    def _parse_code_block(self, data: dict) -> CodeBlock:
+        """解析代码块"""
+        return CodeBlock(
+            language=data.get("language", ""),
+            style=data.get("style"),
+            content=data.get("content", ""),
+            raw_data=data
+        )
 
     def get_base_dir(self) -> Path:
         """获取基础目录（用于解析相对路径）"""

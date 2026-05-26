@@ -32,13 +32,14 @@
 
 ## Block 类型
 
-支持6种 Block 类型：
+支持7种 Block 类型：
 
 | 类型 | 说明 | 职责 |
 |------|------|------|
 | `heading` | 结构化标题 | 定义文档结构（level + style） |
 | `toc` | 目录 | 收集 heading 结构生成目录 |
 | `text` | 文本段落 | 普通段落内容 |
+| `code` | 代码块 | 预格式化代码（等宽字体+背景色+保留换行） |
 | `image` | 图片 | 插入图片 |
 | `table` | 表格 | 插入表格 |
 | `page-break` | 换页符 | 分页 |
@@ -206,6 +207,72 @@
 
 ---
 
+## code 类型
+
+代码块是独立的 block 类型，**不是** paragraph 的子类型。它本质是"预格式化文本"，使用纯文本 `content` 而非 `runs`。
+
+### 基本结构
+
+```json
+{
+  "type": "code",
+  "language": "python",
+  "style": "代码块",
+  "content": "def hello():\n    print('hello world')"
+}
+```
+
+### 字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | string | 是 | 固定值 `"code"` |
+| `language` | string | 否 | 编程语言标识（如 `python`、`java`），预留扩展用 |
+| `style` | string | **是** | **必须在 style.json 中定义的样式名称** |
+| `content` | string | 是 | 代码纯文本，使用 `\n` 表示换行 |
+
+### 设计要点
+
+- **content 为纯文本**：不使用 runs，避免转义、缩进、换行、tab 等问题
+- **每行独立段落**：content 按换行符拆分，每行渲染为独立段落
+- **保留原始格式**：保留空格、缩进、换行
+- **样式控制外观**：通过 style.json 中的样式控制等宽字体、背景色、缩进、行距
+
+### 严格模式说明
+
+- `style` 字段**必须显式指定**，必须在 `style.json` 中存在
+- `language` 字段为预留字段，当前版本不参与渲染
+
+### 推荐样式配置
+
+```json
+{
+  "代码块": {
+    "font_name": "Consolas",
+    "font_name_east_asia": "Consolas",
+    "font_size": 10.5,
+    "background_color": "F5F5F5",
+    "line_spacing": {"units": "pt", "value": 18},
+    "left_indent_cm": 0.74,
+    "space_before": {"units": "pt", "value": 0},
+    "space_after": {"units": "pt", "value": 0}
+  }
+}
+```
+
+### 示例
+
+```json
+{
+  "type": "code",
+  "language": "python",
+  "style": "代码块",
+  "content": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)"
+}
+```
+
+---
+
 ## image 类型
 
 ### 基本结构
@@ -356,6 +423,14 @@
 - 功能：设置行间距
 - 格式：`{"units": "pt"|"line", "value": number}`
 
+#### background_color
+- 功能：设置段落背景色（常用于代码块）
+- 取值：HEX 颜色值，不带 `#` 前缀（如 `"F5F5F5"`）
+
+#### left_indent_cm
+- 功能：设置左缩进（厘米）
+- 取值：数字，单位为厘米（如 `0.74` 表示 0.74 厘米）
+
 ---
 
 ## 完整示例
@@ -415,6 +490,12 @@
       "type": "image",
       "style": "图片",
       "src": "images/fig1.png"
+    },
+    {
+      "type": "code",
+      "language": "python",
+      "style": "代码块",
+      "content": "def hello():\n    print('hello world')"
     }
   ]
 }
@@ -476,6 +557,14 @@
   "图片": {
     "alignment": "center",
     "width_cm": 10
+  },
+  "代码块": {
+    "font_name": "Consolas",
+    "font_name_east_asia": "Consolas",
+    "font_size": 10.5,
+    "background_color": "F5F5F5",
+    "line_spacing": {"units": "pt", "value": 18},
+    "left_indent_cm": 0.74
   }
 }
 ```
@@ -508,3 +597,5 @@ python -m core.converter document.json style.json output.docx
 | 样式未指定 | `heading (level=1): 未指定 style` |
 | 样式不存在 | `text: 样式不存在 '正文'` |
 | TOC样式不存在 | `toc level 1: 样式不存在 '目录一级'` |
+| 代码块样式未指定 | `code: 未指定样式名称` |
+| 代码块样式不存在 | `code: 样式不存在 '代码块'` |
