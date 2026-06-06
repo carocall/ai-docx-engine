@@ -23,7 +23,9 @@
     {"type": "text", "style": "正文", "runs": [...]},
     {"type": "image", "style": "图片", "src": "..."},
     {"type": "table", "style": "表格", "rows": 3, "cols": 3, "cells": [...], "header_style": "表头", "body_style": "表内文字", ...},
-    {"type": "page-break"}
+    {"type": "code", "language": "python", "style": "代码块", "content": "..."},
+    {"type": "page-break", "break_type": "page"},
+    {"type": "section-break", "break_type": "nextPage"}
   ]
 }
 ```
@@ -32,7 +34,7 @@
 
 ## Block 类型
 
-支持7种 Block 类型：
+支持8种 Block 类型：
 
 | 类型 | 说明 | 职责 |
 |------|------|------|
@@ -42,7 +44,8 @@
 | `code` | 代码块 | 预格式化代码（等宽字体+背景色+保留换行） |
 | `image` | 图片 | 插入图片 |
 | `table` | 表格 | 插入表格 |
-| `page-break` | 换页符 | 分页 |
+| `page-break` | 行内断点 | 分页符 / 分栏符 / 行内换行 |
+| `section-break` | 节分隔 | 创建新节（下一页 / 连续 / 偶数页 / 奇数页） |
 
 ---
 
@@ -354,15 +357,91 @@
 
 ## page-break 类型
 
+行内断点，通过 `w:br` 元素实现。
+
 ### 基本结构
 
 ```json
 {
-  "type": "page-break"
+  "type": "page-break",
+  "break_type": "page"
 }
 ```
 
-无需其他字段，直接插入换页符。
+### 字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | string | 是 | 固定值 `"page-break"` |
+| `break_type` | string | 否 | 断点类型，默认 `"page"` |
+
+### break_type 取值
+
+| 值 | XML | 说明 |
+|----|-----|------|
+| `"page"` | `<w:br w:type="page"/>` | **分页符** — 后续内容跳到下一页（默认） |
+| `"column"` | `<w:br w:type="column"/>` | **分栏符** — 跳到下一栏（无分栏时等同于 page） |
+| `"line"` | `<w:br w:type="textWrapping"/>` | **行内换行** — 仅换行到下一行（Shift+Enter） |
+
+### 说明
+
+- 不指定 `break_type` 时默认为 `"page"`，兼容旧版 JSON 格式
+- `"column"` 仅在多栏排版中有意义
+
+### 示例
+
+```json
+{"type": "page-break"}
+{"type": "page-break", "break_type": "page"}
+{"type": "page-break", "break_type": "column"}
+{"type": "page-break", "break_type": "line"}
+```
+
+---
+
+## section-break 类型
+
+节分隔，通过 `w:sectPr` 元素实现，创建新的文档节（Section）。
+
+### 基本结构
+
+```json
+{
+  "type": "section-break",
+  "break_type": "nextPage"
+}
+```
+
+### 字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | string | 是 | 固定值 `"section-break"` |
+| `break_type` | string | 否 | 节分隔类型，默认 `"nextPage"` |
+
+### break_type 取值
+
+| 值 | XML | 说明 |
+|----|-----|------|
+| `"nextPage"` | `<w:type w:val="nextPage"/>` | **下一页** — 新节从下一页开始（默认，最常用） |
+| `"continuous"` | `<w:type w:val="continuous"/>` | **连续** — 不分页，新节从当前页继续（用于同页改分栏等） |
+| `"evenPage"` | `<w:type w:val="evenPage"/>` | **偶数页** — 新节从下一个偶数页开始（双面打印用） |
+| `"oddPage"` | `<w:type w:val="oddPage"/>` | **奇数页** — 新节从下一个奇数页开始（双面打印用） |
+
+### 说明
+
+- 不指定 `break_type` 时默认为 `"nextPage"`，兼容旧版
+- 每个节可以有独立的页面设置（页边距、纸张方向、页眉页脚等）
+
+### 示例
+
+```json
+{"type": "section-break"}
+{"type": "section-break", "break_type": "nextPage"}
+{"type": "section-break", "break_type": "continuous"}
+{"type": "section-break", "break_type": "evenPage"}
+{"type": "section-break", "break_type": "oddPage"}
+```
 
 ---
 
@@ -503,6 +582,14 @@
       "language": "python",
       "style": "代码块",
       "content": "def hello():\n    print('hello world')"
+    },
+    {
+      "type": "page-break",
+      "break_type": "page"
+    },
+    {
+      "type": "section-break",
+      "break_type": "nextPage"
     }
   ]
 }
@@ -608,3 +695,5 @@ python -m core.converter document.json style.json output.docx
 | TOC样式不存在 | `toc level 1: 样式不存在 '目录一级'` |
 | 代码块样式未指定 | `code: 未指定样式名称` |
 | 代码块样式不存在 | `code: 样式不存在 '代码块'` |
+| page-break类型无效 | `page-break: 无效的 break_type 'xxx'，可选值: column, line, page` |
+| section-break类型无效 | `section-break: 无效的 break_type 'xxx'，可选值: continuous, evenPage, nextPage, oddPage` |

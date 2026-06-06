@@ -80,8 +80,17 @@ class TocBlock(Block):
 class PageBreakBlock(Block):
     """分页块"""
 
-    def __init__(self, raw_data: dict = None):
+    def __init__(self, break_type: str = "page", raw_data: dict = None):
         super().__init__("page-break", None, raw_data)
+        self.break_type = break_type or "page"
+
+
+class SectionBreakBlock(Block):
+    """节分隔块"""
+
+    def __init__(self, break_type: str = "nextPage", raw_data: dict = None):
+        super().__init__("section-break", None, raw_data)
+        self.break_type = break_type or "nextPage"
 
 
 class CodeBlock(Block):
@@ -123,6 +132,7 @@ class ContentParser:
             "table": self._parse_table_block,
             "toc": self._parse_toc_block,
             "page-break": self._parse_page_break_block,
+            "section-break": self._parse_section_break_block,
             "code": self._parse_code_block,
         }
 
@@ -181,7 +191,17 @@ class ContentParser:
 
     def _parse_page_break_block(self, data: dict) -> PageBreakBlock:
         """解析分页块"""
-        return PageBreakBlock(raw_data=data)
+        return PageBreakBlock(
+            break_type=data.get("break_type", "page"),
+            raw_data=data
+        )
+
+    def _parse_section_break_block(self, data: dict) -> SectionBreakBlock:
+        """解析节分隔块"""
+        return SectionBreakBlock(
+            break_type=data.get("break_type", "nextPage"),
+            raw_data=data
+        )
 
     def _parse_code_block(self, data: dict) -> CodeBlock:
         """解析代码块"""

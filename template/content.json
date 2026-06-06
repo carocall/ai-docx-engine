@@ -374,6 +374,50 @@
       "language": "python",
       "style": "inner_code",
       "content": "def hello():\n    print('hello world')\n    for i in range(10):\n        print(i)"
+    },
+    {
+      "type": "page-break"
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "style": "inner_heading1",
+      "runs": [
+        {
+          "text": "5 换页与分节演示"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "style": "inner_body",
+      "runs": [
+        {
+          "text": "page-break 支持三种类型：page（分页符）、column（分栏符）、line（行内换行）。"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "style": "inner_body",
+      "runs": [
+        {
+          "text": "section-break 支持四种类型：nextPage（下一页）、continuous（连续）、evenPage（偶数页）、oddPage（奇数页）。"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "style": "inner_body",
+      "runs": [
+        {
+          "text": "不指定 break_type 时，默认值分别为 page 和 nextPage，兼容旧版 JSON 格式。"
+        }
+      ]
+    },
+    {
+      "type": "section-break",
+      "break_type": "nextPage"
     }
   ]
 }

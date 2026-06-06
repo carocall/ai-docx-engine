@@ -7,7 +7,7 @@ from typing import List
 
 from .styles import StyleEngine
 from .parser import Block, ContentParser
-from .blocks import TextHandler, HeadingHandler, ImageHandler, TableHandler, TocHandler, PageBreakHandler, CodeHandler
+from .blocks import TextHandler, HeadingHandler, ImageHandler, TableHandler, TocHandler, PageBreakHandler, SectionBreakHandler, CodeHandler
 
 
 class DocxRenderer:
@@ -30,6 +30,7 @@ class DocxRenderer:
             ImageHandler(self.doc, self.style_engine, base_dir),
             TableHandler(self.doc, self.style_engine, base_dir),
             PageBreakHandler(self.doc, self.style_engine, base_dir),
+            SectionBreakHandler(self.doc, self.style_engine, base_dir),
         ]
 
     def render(self, blocks: List[Block], output_path: str):

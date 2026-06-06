@@ -8,10 +8,11 @@ from .image import ImageHandler
 from .table import TableHandler
 from .toc import TocHandler
 from .page_break import PageBreakHandler
+from .section_break import SectionBreakHandler
 from .code import CodeHandler
 
 __all__ = [
     'BlockHandler', 'TextHandler', 'HeadingHandler',
-    'ImageHandler', 'TableHandler', 'TocHandler', 'PageBreakHandler',
-    'CodeHandler'
+    'ImageHandler', 'TableHandler', 'TocHandler',
+    'PageBreakHandler', 'SectionBreakHandler', 'CodeHandler'
 ]
