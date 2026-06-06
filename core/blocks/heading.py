@@ -30,8 +30,14 @@ class HeadingHandler(BlockHandler):
         # 创建段落并应用样式
         para = self.doc.add_paragraph(style=style_name)
 
-        # 设置 outlineLevel（让 Word 识别为标题结构）
-        self._set_outline_level(para, level)
+        # 设置 outlineLevel：优先从样式读取，否则从 block.level 推导
+        style_props = self.style_engine.get_style(style_name)
+        if style_props.get("outline_level") is not None:
+            # 样式已定义 outline_level，注册时已生效，无需重复设置
+            pass
+        else:
+            # 回退到 block.level
+            self._set_outline_level(para, level)
 
         # 设置书签 id（如果提供了）
         if block.id:

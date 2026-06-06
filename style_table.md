@@ -77,6 +77,7 @@
 - `style` 字段**必须显式指定**，不再提供默认映射
 - 指定的样式必须在 `style.json` 中存在
 - `level` 用于设置 Word 的 `outlineLevel`，与样式名称无关
+- 如果样式中定义了 `outline_level`，将使用样式中的值，忽略 block 的 `level` 字段
 
 ### 示例
 
@@ -431,6 +432,12 @@
 - 功能：设置左缩进（厘米）
 - 取值：数字，单位为厘米（如 `0.74` 表示 0.74 厘米）
 
+#### outline_level
+- 功能：设置标题的结构层级（让 Word 识别为标题，用于生成目录）
+- 取值：0 ~ 4（0 = 一级标题，1 = 二级标题，以此类推）
+- 适用范围：heading 类型的样式
+- 说明：如果样式中定义了 `outline_level`，heading handler 会使用样式中的值；否则回退到 block 的 `level` 字段
+
 ---
 
 ## 完整示例
@@ -510,6 +517,7 @@
     "font_name_east_asia": "黑体",
     "font_size": 22,
     "bold": true,
+    "outline_level": 0,
     "alignment": "center",
     "line_spacing": {"units": "line", "value": 1.5}
   },
@@ -518,6 +526,7 @@
     "font_name_east_asia": "黑体",
     "font_size": 16,
     "bold": true,
+    "outline_level": 1,
     "line_spacing": {"units": "line", "value": 1.5}
   },
   "正文": {

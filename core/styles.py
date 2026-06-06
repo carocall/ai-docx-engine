@@ -124,6 +124,13 @@ class StyleEngine:
             from docx.shared import Cm
             para_style.paragraph_format.left_indent = Cm(style_props["left_indent_cm"])
 
+        # 设置 outline_level（让 Word 识别为标题结构，用于目录生成）
+        if style_props.get("outline_level") is not None:
+            pPr = para_style.element.get_or_add_pPr()
+            outlineLvl = OxmlElement('w:outlineLvl')
+            outlineLvl.set(qn('w:val'), str(int(style_props["outline_level"])))
+            pPr.append(outlineLvl)
+
     def _set_spacing(self, para_format, attr_name: str, spacing_config):
         """设置段落间距"""
         if spacing_config:
